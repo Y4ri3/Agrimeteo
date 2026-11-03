@@ -1,0 +1,191 @@
+git version 2.47.3
+a40bce548d2c
+=== Monorepo d'essai (historique synthétique : le dossier de travail n'a pas de .git)
+warning: in the working copy of 'docs/preuves/J01/lots-5-6/03-verify-deploy.raw.log', CRLF will be replaced by LF the next time Git touches it
+6b03b98 revert: touche backend
+29fa94b fix: touche backend
+6a751ba refactor: renomme le client frontend
+6b0e89d chore: import initial
+=== Extraction (M-01)
+        in the manual if you want to push back there.
+        (was /v/agrimeteo)
+Parsed 4 commitsHEAD is now at a216e65 refactor: renomme le client frontend
+
+Repacking your repo and cleaning out old unneeded objects
+        in the manual if you want to push back there.
+        (was /v/agrimeteo)
+Parsed 4 commitsHEAD is now at 0e41a0b revert: touche backend
+
+Repacking your repo and cleaning out old unneeded objects
+Dépôts extraits dans /v/out
+monorepo inchangé : 6b03b98fd1dc7048e4162af8762398823ebdcf50
+=== Contenu des dépôts
+.dockerignore
+.git
+.gitignore
+Dockerfile
+Makefile
+README.md
+eslint.config.js
+index.html
+nginx.conf
+package-lock.json
+package.json
+src
+tests
+tsconfig.json
+vite.config.ts
+---
+.dockerignore
+.editorconfig
+.git
+.gitattributes
+.gitignore
+Makefile
+backend
+docs
+ml
+scripts
+=== Historique
+a216e65 refactor: renomme le client frontend
+e26b33e chore: import initial
+0e41a0b revert: touche backend
+e8c7c19 fix: touche backend
+2a60745 chore: import initial
+=== M-03 : dépôt backend seul
+M-01 backend : 3 commit(s) suivis pour backend/app/main.py
+make -C ml setup PY=python3
+make[1]: Entering directory '/v/out/agrimeteo-backend/ml'
+python3 -m pip install -e ".[dev]"
+
+make[1]: Leaving directory '/v/out/agrimeteo-backend/ml'
+make -C backend setup PY=python3
+make[1]: Entering directory '/v/out/agrimeteo-backend/backend'
+python3 -m pip install -e ../ml -e ".[dev]"
+
+make[1]: Leaving directory '/v/out/agrimeteo-backend/backend'
+make -C ml ci
+make[1]: Entering directory '/v/out/agrimeteo-backend/ml'
+ruff check .
+All checks passed!
+mkdir -p reports
+pytest --junitxml=reports/junit.xml --cov=agrimeteo_ml --cov-report=xml:reports/coverage.xml --cov-report=term
+============================= test session starts ==============================
+platform linux -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0
+rootdir: /v/out/agrimeteo-backend/ml
+configfile: pyproject.toml
+plugins: anyio-4.16.0, cov-7.1.0
+collected 1 item
+
+tests/test_schema.py .                                                   [100%]
+
+------ generated xml file: /v/out/agrimeteo-backend/ml/reports/junit.xml -------
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.16-final-0 _______________
+
+Name                           Stmts   Miss  Cover
+--------------------------------------------------
+src/agrimeteo_ml/__init__.py       0      0   100%
+src/agrimeteo_ml/schema.py         1      0   100%
+--------------------------------------------------
+TOTAL                              1      0   100%
+Coverage XML written to file reports/coverage.xml
+============================== 1 passed in 0.07s ===============================
+make[1]: Leaving directory '/v/out/agrimeteo-backend/ml'
+make -C backend ci
+make[1]: Entering directory '/v/out/agrimeteo-backend/backend'
+ruff check . && ruff format --check .
+All checks passed!
+20 files already formatted
+mkdir -p reports
+pytest --junitxml=reports/junit.xml --cov=app --cov-report=xml:reports/coverage.xml --cov-report=term
+============================= test session starts ==============================
+platform linux -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0
+rootdir: /v/out/agrimeteo-backend/backend
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.16.0, cov-7.1.0
+collected 9 items
+
+tests/test_api.py .........                                              [100%]
+
+=============================== warnings summary ===============================
+../../../../usr/local/lib/python3.12/site-packages/fastapi/testclient.py:1
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+---- generated xml file: /v/out/agrimeteo-backend/backend/reports/junit.xml ----
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.16-final-0 _______________
+
+Name                         Stmts   Miss  Cover
+------------------------------------------------
+app/__init__.py                  1      0   100%
+app/api/__init__.py              0      0   100%
+app/api/v1/__init__.py           0      0   100%
+app/api/v1/routes.py            44      1    98%
+app/core/__init__.py             0      0   100%
+app/core/config.py              10      2    80%
+app/core/errors.py               9      0   100%
+app/export_openapi.py            6      6     0%
+app/main.py                     40      3    92%
+app/providers/__init__.py        0      0   100%
+app/schemas/__init__.py          0      0   100%
+app/schemas/common.py           16      0   100%
+app/schemas/indicators.py       15      0   100%
+app/schemas/predictions.py      59      0   100%
+app/schemas/weather.py          42      0   100%
+app/services/__init__.py         0      0   100%
+app/services/stub.py            38      1    97%
+------------------------------------------------
+TOTAL                          280     13    95%
+Coverage XML written to file reports/coverage.xml
+========================= 9 passed, 1 warning in 0.25s =========================
+make[1]: Leaving directory '/v/out/agrimeteo-backend/backend'
+python3 scripts/check_openapi.py
+openapi.json à jour
+make ci réussi pour backend, seul
+exit partie A=0
+=== M-02 : dépôt frontend seul ; présence du backend dans ce conteneur :
+aucune
+M-01 frontend : 2 commit(s) suivis pour src/api.ts
+npm ci
+added 199 packages, and audited 200 packages in 31s
+51 packages are looking for funding
+  run `npm fund` for details
+11 moderate severity vulnerabilities
+To address issues that do not require attention, run:
+  npm audit fix
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+Run `npm audit` for details.
+npm run lint && npm run typecheck
+> agrimeteo-frontend@0.1.0 lint
+> eslint src tests
+> agrimeteo-frontend@0.1.0 typecheck
+> tsc --noEmit
+npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/junit.xml
+> agrimeteo-frontend@0.1.0 test
+> vitest run --reporter=default --reporter=junit --outputFile.junit=reports/junit.xml
+ RUN  v5.0.5 /v/out/agrimeteo-frontend
+ ✓ tests/App.test.tsx (2 tests) 56ms
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  14:29:51
+   Duration  836ms (environment 70%, setup 9%, transform 8%, tests 8%, import 5%, worker 1%)
+JUNIT report written to /v/out/agrimeteo-frontend/reports/junit.xml
+npm run build
+> agrimeteo-frontend@0.1.0 build
+> tsc --noEmit && vite build
+vite v8.3.5 building client environment for production...
+transforming...
+✓ 16 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                  0.28 kB │ gzip:  0.22 kB
+dist/assets/index-DqEOgclR.js  221.27 kB │ gzip: 69.33 kB
+✓ built in 172ms
+make ci réussi pour frontend, seul
+exit partie B=0
+=== Build Docker des dépôts extraits (poste Windows, Docker 29.8.2)
+[migration-backend:latest] user=10001
+[migration-frontend:latest] user=101

@@ -1,0 +1,23 @@
+Déploiement de la version manual-20261102143315 (version en service : aucune)
+ Image agrimeteo-frontend:manual-20261102143315 Building 
+ Image agrimeteo-backend:manual-20261102143315 Building 
+ Image agrimeteo-backend:manual-20261102143315 Built 
+ Image agrimeteo-frontend:manual-20261102143315 Built 
+ Container agrimeteo-backend-1 Recreate 
+ Container agrimeteo-backend-1 Recreated 
+ Container agrimeteo-frontend-1 Recreate 
+ Container agrimeteo-frontend-1 Recreated 
+ Container agrimeteo-backend-1 Starting 
+ Container agrimeteo-backend-1 Started 
+ Container agrimeteo-backend-1 Waiting 
+ Container agrimeteo-backend-1 Healthy 
+ Container agrimeteo-frontend-1 Starting 
+ Container agrimeteo-frontend-1 Started 
+ Container agrimeteo-frontend-1 Waiting 
+ Container agrimeteo-backend-1 Waiting 
+ Container agrimeteo-backend-1 Healthy 
+ Container agrimeteo-frontend-1 Healthy 
+front OK
+api OK (via nginx)
+analyse OK (culture_exemple_a)
+Déploiement réussi : manual-20261102143315

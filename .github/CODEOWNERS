@@ -1,0 +1,5 @@
+# Remplacer par les identifiants GitHub réels une fois l'équipe affectée.
+/infra/ @LOT5-A-AFFECTER
+/.github/workflows/ @LOT5-A-AFFECTER
+/docs/api/ @LOT6-A-AFFECTER
+/scripts/ @LOT6-A-AFFECTER

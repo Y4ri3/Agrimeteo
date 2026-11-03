@@ -1,0 +1,2 @@
+# ADR-002 : CI sans port publié
+Statut : accepté. Le job e2e lance la pile sans port publié (`!reset`, Compose >= 2.24, présent sur les runners GitHub) et teste dans le réseau Compose : pas de conflit de ports entre exécutions, pas de dépendance au `localhost` de l'hôte. Le port 8080 reste publié dans le `docker-compose.yml` de base pour l'usage local. Écart au cahier, qui évoquait des ports publiés.

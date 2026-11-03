@@ -1,0 +1,13 @@
+# PROFIL D'EXEMPLE : aucune valeur agronomique réelle. Seuils à fournir et valider par le lot 2.
+id: culture_exemple_a
+label: Culture exemple A (profil de démonstration)
+version: 0.1.0
+status: a_valider        # a_valider | valide  (un profil non validé ne doit jamais être présenté comme fiable)
+source: null             # référence agronomique obligatoire avant passage à "valide"
+criteria:
+  - id: gel
+    variable: tmin_c
+    threshold: null
+  - id: pluie_cumulee
+    variable: precipitation_mm
+    threshold: null

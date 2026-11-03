@@ -1,0 +1,13 @@
+# CI : aucun port publié (jobs parallèles, pas de conflit), données figées, e2e dans le réseau Compose.
+# Nécessite Docker Compose >= 2.24 (balise !reset). Écart assumé vs cahier : voir docs/decisions/ADR-002.
+services:
+  backend:
+    environment: { WEATHER_PROVIDER: fixture }
+  frontend:
+    ports: !reset []
+  e2e:
+    build: { context: ./e2e }
+    environment: { E2E_BASE_URL: "http://frontend:8080" }
+    depends_on: { frontend: { condition: service_started } }
+    profiles: ["e2e"]
+    volumes: [./e2e/reports:/e2e/reports]

@@ -1,0 +1,147 @@
+--- 1. Première version
+Déploiement de la version verify-1 (version en service : aucune)
+ Image agrimeteo-frontend:verify-1 Building 
+ Image agrimeteo-backend:verify-1 Building 
+ Image agrimeteo-backend:verify-1 Built 
+ Image agrimeteo-frontend:verify-1 Built 
+ Network agrimeteo-verify_default Creating 
+ Volume agrimeteo-verify_cache Creating 
+ Volume agrimeteo-verify_cache Creating 
+ Network agrimeteo-verify_default Creating 
+ Volume agrimeteo-verify_cache Created 
+ Volume agrimeteo-verify_cache Created 
+ Network agrimeteo-verify_default Created 
+ Network agrimeteo-verify_default Created 
+ Container agrimeteo-verify-backend-1 Creating 
+ Container agrimeteo-verify-backend-1 Created 
+ Container agrimeteo-verify-frontend-1 Creating 
+ Container agrimeteo-verify-frontend-1 Created 
+ Container agrimeteo-verify-backend-1 Starting 
+ Container agrimeteo-verify-backend-1 Started 
+ Container agrimeteo-verify-backend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Healthy 
+ Container agrimeteo-verify-frontend-1 Starting 
+ Container agrimeteo-verify-frontend-1 Started 
+ Container agrimeteo-verify-backend-1 Waiting 
+ Container agrimeteo-verify-frontend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Healthy 
+ Container agrimeteo-verify-frontend-1 Healthy 
+front OK
+api OK (via nginx)
+analyse OK (culture_exemple_a)
+Déploiement réussi : verify-1
+OK : verify-1 en service
+--- 2. Mise à jour
+Déploiement de la version verify-2 (version en service : verify-1)
+ Image agrimeteo-frontend:verify-2 Building 
+ Image agrimeteo-backend:verify-2 Building 
+ Image agrimeteo-backend:verify-2 Built 
+ Image agrimeteo-frontend:verify-2 Built 
+ Container agrimeteo-verify-backend-1 Recreate 
+ Container agrimeteo-verify-backend-1 Recreated 
+ Container agrimeteo-verify-frontend-1 Recreate 
+ Container agrimeteo-verify-frontend-1 Recreated 
+ Container agrimeteo-verify-backend-1 Starting 
+ Container agrimeteo-verify-backend-1 Started 
+ Container agrimeteo-verify-backend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Healthy 
+ Container agrimeteo-verify-frontend-1 Starting 
+ Container agrimeteo-verify-frontend-1 Started 
+ Container agrimeteo-verify-frontend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Healthy 
+ Container agrimeteo-verify-frontend-1 Healthy 
+front OK
+api OK (via nginx)
+analyse OK (culture_exemple_a)
+Déploiement réussi : verify-2
+OK : verify-2 en service
+--- 3. Version en échec : le smoke test ne passe pas, retour automatique
+Déploiement de la version verify-3 (version en service : verify-2)
+ Image agrimeteo-backend:verify-3 Building 
+ Image agrimeteo-frontend:verify-3 Building 
+ Image agrimeteo-frontend:verify-3 Built 
+ Image agrimeteo-backend:verify-3 Built 
+ Container agrimeteo-verify-backend-1 Recreate 
+ Container agrimeteo-verify-backend-1 Recreated 
+ Container agrimeteo-verify-frontend-1 Recreate 
+ Container agrimeteo-verify-frontend-1 Recreated 
+ Container agrimeteo-verify-backend-1 Starting 
+ Container agrimeteo-verify-backend-1 Started 
+ Container agrimeteo-verify-backend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Healthy 
+ Container agrimeteo-verify-frontend-1 Starting 
+ Container agrimeteo-verify-frontend-1 Started 
+ Container agrimeteo-verify-frontend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Healthy 
+ Container agrimeteo-verify-frontend-1 Healthy 
+curl: (7) Failed to connect to localhost port 1 after 2226 ms: Could not connect to server
+Échec du déploiement de verify-3
+Retour à la version en service : verify-2
+ Container agrimeteo-verify-backend-1 Recreate 
+ Container agrimeteo-verify-backend-1 Recreated 
+ Container agrimeteo-verify-frontend-1 Recreate 
+ Container agrimeteo-verify-frontend-1 Recreated 
+ Container agrimeteo-verify-backend-1 Starting 
+ Container agrimeteo-verify-backend-1 Started 
+ Container agrimeteo-verify-backend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Healthy 
+ Container agrimeteo-verify-frontend-1 Starting 
+ Container agrimeteo-verify-frontend-1 Started 
+ Container agrimeteo-verify-backend-1 Waiting 
+ Container agrimeteo-verify-frontend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Healthy 
+ Container agrimeteo-verify-frontend-1 Healthy 
+front OK
+api OK (via nginx)
+analyse OK (culture_exemple_a)
+OK : verify-2 en service
+--- 4. Retour arrière manuel
+ Container agrimeteo-verify-backend-1 Recreate 
+ Container agrimeteo-verify-backend-1 Recreated 
+ Container agrimeteo-verify-frontend-1 Recreate 
+ Container agrimeteo-verify-frontend-1 Recreated 
+ Container agrimeteo-verify-backend-1 Starting 
+ Container agrimeteo-verify-backend-1 Started 
+ Container agrimeteo-verify-backend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Healthy 
+ Container agrimeteo-verify-frontend-1 Starting 
+ Container agrimeteo-verify-frontend-1 Started 
+ Container agrimeteo-verify-frontend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Healthy 
+ Container agrimeteo-verify-frontend-1 Healthy 
+front OK
+api OK (via nginx)
+analyse OK (culture_exemple_a)
+Retour arrière réussi : verify-1
+OK : verify-1 en service
+--- 5. Nouvelle version : les anciennes images sont supprimées
+Déploiement de la version verify-4 (version en service : verify-1)
+ Image agrimeteo-frontend:verify-4 Building 
+ Image agrimeteo-backend:verify-4 Building 
+ Image agrimeteo-backend:verify-4 Built 
+ Image agrimeteo-frontend:verify-4 Built 
+ Container agrimeteo-verify-backend-1 Recreate 
+ Container agrimeteo-verify-backend-1 Recreated 
+ Container agrimeteo-verify-frontend-1 Recreate 
+ Container agrimeteo-verify-frontend-1 Recreated 
+ Container agrimeteo-verify-backend-1 Starting 
+ Container agrimeteo-verify-backend-1 Started 
+ Container agrimeteo-verify-backend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Healthy 
+ Container agrimeteo-verify-frontend-1 Starting 
+ Container agrimeteo-verify-frontend-1 Started 
+ Container agrimeteo-verify-backend-1 Waiting 
+ Container agrimeteo-verify-frontend-1 Waiting 
+ Container agrimeteo-verify-backend-1 Healthy 
+ Container agrimeteo-verify-frontend-1 Healthy 
+front OK
+api OK (via nginx)
+analyse OK (culture_exemple_a)
+Suppression de l'ancienne version : verify-2
+Déploiement réussi : verify-4
+OK : verify-4 en service
+OK : verify-2 supprimée, verify-1 gardée pour le retour arrière
+Vérification du déploiement réussie

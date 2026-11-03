@@ -1,0 +1,22 @@
+# Déploiement de référence. Seul le frontend est publié ; le backend reste interne.
+name: agrimeteo
+services:
+  backend:
+    image: agrimeteo-backend:${IMAGE_TAG:-local}
+    build: { context: ., dockerfile: backend/Dockerfile }
+    env_file: [.env]
+    volumes: [cache:/var/cache/agrimeteo]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+  frontend:
+    image: agrimeteo-frontend:${IMAGE_TAG:-local}
+    build: { context: ./frontend }
+    ports: ["${FRONTEND_PORT:-8080}:8080"]
+    depends_on: { backend: { condition: service_healthy } }
+    restart: unless-stopped
+volumes:
+  cache:

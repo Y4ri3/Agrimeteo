@@ -1,0 +1,14 @@
+.env
+.venv/
+node_modules/
+dist/
+reports/
+test-results/
+__pycache__/
+*.pyc
+*.egg-info/
+.coverage
+infra/deploy/*
+!infra/deploy/.gitkeep
+.pytest_cache/
+.ruff_cache/

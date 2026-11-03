@@ -1,0 +1,13 @@
+détecté : ml importe le backend (I-04) -> violations : ['ml/src/agrimeteo_ml/mauvais.py : importe app.main']
+détecté : backend importe le frontend (I-04) -> violations : ['backend/app/mauvais.py : importe frontend']
+détecté : frontend importe le backend (I-04) -> violations : ['frontend/src/mauvais.ts : importe ../../backend/app/main, hors du frontend']
+détecté : variable absente de .env.example (C-05) -> 5 variables lues ; manquantes dans .env.example : ['VARIABLE_OUBLIEE']
+détecté : clé AWS dans le code (C-04) -> secrets possibles : ['backend/app/mauvais.py:1 : clé AWS']
+détecté : jeton dans .env.example (C-04) -> secrets possibles : ['.env.example:6 : valeur sensible']
+détecté : .env suivi par Git (C-04, R8) -> secrets possibles : ['.env : suivi par Git']
+détecté : contrat OpenAPI divergent (A-02) -> openapi.json DIVERGE : lancer `make -C backend openapi` et committer
+--- le dépôt propre passe toujours
+violations : aucune
+4 variables lues ; manquantes dans .env.example : aucune
+secrets possibles : aucun
+openapi.json à jour

@@ -1,0 +1,110 @@
+name: CI
+on:
+  push: { branches: [main] }
+  pull_request:
+concurrency:
+  group: ci-${{ github.ref }}
+  # Sur main, un nouveau push n'interrompt jamais un déploiement en cours.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pyyaml
+      - run: |
+          python scripts/check_env_example.py
+          python scripts/check_imports.py
+          python scripts/check_rules_profiles.py
+          python scripts/check_secrets.py
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: make -C backend setup ci
+      - run: python scripts/check_openapi.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: backend-reports, path: backend/reports/ }
+
+  ml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: make -C ml setup ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: ml-reports, path: ml/reports/ }
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - run: make -C frontend setup ci check-client
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: frontend-reports, path: frontend/reports/ }
+
+  e2e:
+    needs: [checks, backend, ml, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: IMAGE_TAG=${{ github.sha }} sh infra/scripts/run-e2e-ci.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: e2e-reports, path: e2e/reports/ }
+
+  # Rejoue déploiement, échec et retour arrière sur le runner (C-06, C-07).
+  deploy-check:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sh infra/scripts/verify-deploy.sh
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: deploy-check
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with: { registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}" }
+      - name: Construire et pousser les images (tag = commit)
+        run: |
+          cp .env.example .env
+          REPO="ghcr.io/${GITHUB_REPOSITORY,,}"
+          export IMAGE_TAG="${GITHUB_SHA}"
+          docker compose build
+          for s in backend frontend; do
+            docker tag "agrimeteo-$s:${IMAGE_TAG}" "$REPO/$s:${IMAGE_TAG}"
+            docker push "$REPO/$s:${IMAGE_TAG}"
+          done
+
+  # Actif seulement si la variable de dépôt DEPLOY_SELF_HOSTED vaut true et qu'un runner auto-hébergé existe (ADR-005).
+  # L'état reste hors de l'espace de travail : actions/checkout supprime les fichiers ignorés par Git.
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_SELF_HOSTED == 'true'
+    needs: publish
+    runs-on: self-hosted
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - run: sh infra/scripts/deploy-local.sh
+        env:
+          DEPLOY_STATE_DIR: ${{ runner.tool_cache }}/agrimeteo-deploy

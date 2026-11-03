@@ -1,0 +1,1 @@
+"""Code transverse : configuration, erreurs."""

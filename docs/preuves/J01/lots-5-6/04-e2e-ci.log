@@ -1,0 +1,61 @@
+ Image agrimeteo-backend:e2e-check Building 
+ Image agrimeteo-frontend:e2e-check Building 
+ Image agrimeteo-backend:e2e-check Built 
+ Image agrimeteo-frontend:e2e-check Built 
+agrimeteo-backend:e2e-check : utilisateur 10001
+agrimeteo-frontend:e2e-check : utilisateur 101
+images conformes
+ Network agrimeteo-ci_default Creating 
+ Volume agrimeteo-ci_cache Creating 
+ Network agrimeteo-ci_default Creating 
+ Volume agrimeteo-ci_cache Creating 
+ Volume agrimeteo-ci_cache Created 
+ Volume agrimeteo-ci_cache Created 
+ Network agrimeteo-ci_default Created 
+ Network agrimeteo-ci_default Created 
+ Container agrimeteo-ci-backend-1 Creating 
+ Container agrimeteo-ci-backend-1 Created 
+ Container agrimeteo-ci-frontend-1 Creating 
+ Container agrimeteo-ci-frontend-1 Created 
+ Container agrimeteo-ci-backend-1 Starting 
+ Container agrimeteo-ci-backend-1 Started 
+ Container agrimeteo-ci-backend-1 Waiting 
+ Container agrimeteo-ci-backend-1 Healthy 
+ Container agrimeteo-ci-frontend-1 Starting 
+ Container agrimeteo-ci-frontend-1 Started 
+ Container agrimeteo-ci-backend-1 Waiting 
+ Container agrimeteo-ci-frontend-1 Waiting 
+ Container agrimeteo-ci-backend-1 Healthy 
+ Container agrimeteo-ci-frontend-1 Healthy 
+ Image agrimeteo-frontend:e2e-check Building 
+ Image agrimeteo-backend:e2e-check Building 
+ Image agrimeteo-backend:e2e-check Built 
+ Image agrimeteo-frontend:e2e-check Built 
+ Container agrimeteo-ci-backend-1 Running 
+ Container agrimeteo-ci-frontend-1 Running 
+ Container agrimeteo-ci-backend-1 Waiting 
+ Container agrimeteo-ci-backend-1 Healthy 
+ Image agrimeteo-ci-e2e Building 
+ Image agrimeteo-ci-e2e Built 
+ Container agrimeteo-ci-e2e-run-f373eba8ae19 Creating 
+ Container agrimeteo-ci-e2e-run-f373eba8ae19 Created 
+Running 5 tests using 2 workers
+  ✓  2 tests/api.spec.ts:6:5 › smoke : le frontend et l'API répondent, une analyse aboutit (C-06) (66ms)
+  ✓  3 tests/api.spec.ts:24:5 › erreur : format commun avec code stable, sans trace interne (A-03) (16ms)
+  ✓  1 tests/analyse.spec.ts:3:5 › parcours nominal : trois blocs distincts (I-02, A-06) (200ms)
+  -  4 tests/analyse.spec.ts:14:6 › parcours nominal : limites affichées (F7, FE-03)
+  ✓  5 tests/analyse.spec.ts:20:5 › source indisponible : message clair, application encore utilisable (I-03) (244ms)
+  1 skipped
+  4 passed (1.2s)
+ Container agrimeteo-ci-frontend-1 Stopping 
+ Container agrimeteo-ci-frontend-1 Stopped 
+ Container agrimeteo-ci-frontend-1 Removing 
+ Container agrimeteo-ci-frontend-1 Removed 
+ Container agrimeteo-ci-backend-1 Stopping 
+ Container agrimeteo-ci-backend-1 Stopped 
+ Container agrimeteo-ci-backend-1 Removing 
+ Container agrimeteo-ci-backend-1 Removed 
+ Volume agrimeteo-ci_cache Removing 
+ Network agrimeteo-ci_default Removing 
+ Volume agrimeteo-ci_cache Removed 
+ Network agrimeteo-ci_default Removed 
