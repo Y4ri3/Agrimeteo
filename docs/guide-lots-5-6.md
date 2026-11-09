@@ -128,7 +128,7 @@ Ils tournent dans un conteneur Playwright, sur le réseau Compose, sans port pub
 |---|---|---|
 | `analyse.spec.ts` : parcours nominal | I-02, A-06 | Analyse lancée, trois notions séparées, confiance affichée |
 | `analyse.spec.ts` : source indisponible | I-03 | Message d'erreur, puis nouvelle analyse réussie |
-| `analyse.spec.ts` : limites affichées | F7, FE-03 | **En attente** : voir l'anomalie [AN-01](suivi/anomalies.md) |
+| `analyse.spec.ts` : limites affichées | F7, FE-03 | **En attente** : affichage des `limits` à faire côté frontend (lot 4) |
 | `api.spec.ts` : smoke | C-06 | Frontend, relais nginx, analyse complète |
 | `api.spec.ts` : erreur | A-03 | Format d'erreur commun, sans trace interne |
 
