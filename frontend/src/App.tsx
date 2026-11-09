@@ -1,44 +1,53 @@
-import { useEffect, useState } from "react";
-import { ApiError, Crop, Prediction, getCrops, postPrediction } from "./api";
+import { useState } from "react";
+import { postPrediction, type Prediction, type PredictionRequest } from "./api";
+import { AnalysisForm } from "./components/AnalysisForm";
+import { Dashboard } from "./components/Dashboard";
+import { ResultView } from "./components/ResultView";
 
-// SQUELETTE (lot 4) : une seule page qui prouve la chaîne front → nginx → API.
+type Tab = "analyse" | "resultat" | "dashboard";
+const TABS: [Tab, string][] = [
+  ["analyse", "Analyse"],
+  ["resultat", "Résultat"],
+  ["dashboard", "Tableau de bord"],
+];
+
 export default function App() {
-  const [crops, setCrops] = useState<Crop[]>([]);
-  const [cropId, setCropId] = useState("");
-  const [result, setResult] = useState<Prediction | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>("analyse");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+  const [done, setDone] = useState<{ request: PredictionRequest; result: Prediction } | null>(null);
 
-  useEffect(() => {
-    getCrops()
-      .then((d) => { setCrops(d.crops); setCropId(d.crops[0]?.id ?? ""); })
-      .catch((e: ApiError) => setError(e.message));
-  }, []);
-
-  async function analyse() {
+  async function analyse(request: PredictionRequest) {
+    setBusy(true);
     setError(null);
-    setResult(null);
-    try { setResult(await postPrediction(cropId, 14.7, -17.4)); }
-    catch (e) { setError((e as Error).message); }
+    try {
+      setDone({ request, result: await postPrediction(request) });
+      setTab("resultat");
+    } catch (e) {
+      setError(e); // on reste sur l'écran Analyse : le formulaire reste utilisable
+    } finally {
+      setBusy(false);
+    }
   }
+
+  const needAnalysis = <p className="muted">Lancez d'abord une analyse depuis l'écran Analyse.</p>;
 
   return (
     <main>
       <h1>AgriMétéo</h1>
-      <label>Culture{" "}
-        <select data-testid="crop-select" value={cropId} onChange={(e) => setCropId(e.target.value)}>
-          {crops.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
-        </select>
-      </label>
-      <button data-testid="analyse-btn" onClick={analyse} disabled={!cropId}>Analyser</button>
-      {error && <p role="alert" data-testid="error-message">{error}</p>}
-      {result && (
-        <section data-testid="result">
-          <div data-testid="block-meteo"><h2>Favorabilité météo</h2><p>{result.meteorological_favorability.summary}</p></div>
-          <div data-testid="block-soil"><h2>Humidité du sol</h2><p>{result.soil_moisture.available ? "Estimée" : "Non disponible"}</p></div>
-          <div data-testid="block-cultivability"><h2>Cultivabilité</h2><p>{result.agronomic_cultivability.reason}</p></div>
-          <p data-testid="confidence">{result.confidence.basis}</p>
-        </section>
-      )}
+      <p className="muted">
+        Estimation de la favorabilité météo à la mise en culture. Ce n'est pas une garantie agronomique.
+      </p>
+      <nav aria-label="Écrans">
+        {TABS.map(([id, label]) => (
+          <button key={id} type="button" aria-current={tab === id ? "page" : undefined} onClick={() => setTab(id)}>
+            {label}
+          </button>
+        ))}
+      </nav>
+      {tab === "analyse" && <AnalysisForm busy={busy} error={error} onSubmit={analyse} />}
+      {tab === "resultat" && (done ? <ResultView result={done.result} /> : needAnalysis)}
+      {tab === "dashboard" && (done ? <Dashboard request={done.request} result={done.result} /> : needAnalysis)}
     </main>
   );
 }

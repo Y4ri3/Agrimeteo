@@ -11,8 +11,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Crops */
-        get: operations["crops_api_v1_crops_get"];
+        /** List Crops */
+        get: operations["list_crops_api_v1_crops_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -411,7 +411,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    crops_api_v1_crops_get: {
+    list_crops_api_v1_crops_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -446,6 +446,7 @@ export interface operations {
                 q: string;
                 limit?: number;
                 language?: string;
+                source?: string | null;
             };
             header?: never;
             path?: never;

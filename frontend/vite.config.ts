@@ -6,5 +6,11 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: { proxy: { "/api": process.env.API_PROXY ?? "http://localhost:8000" } },
-  test: { environment: "jsdom", globals: true, setupFiles: ["tests/setup.ts"] },
+  // Dans jsdom, fetch exige une URL absolue : les tests visent une API simulée par MSW (FE-05).
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: ["tests/setup.ts"],
+    env: { VITE_API_BASE: "http://api.test/api" },
+  },
 });
