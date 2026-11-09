@@ -10,7 +10,7 @@ STATE="${DEPLOY_STATE_DIR:-infra/deploy}"
 TIMEOUT="${DEPLOY_TIMEOUT:-90}"
 KEEP="${IMAGE_KEEP:-3}"
 PORT="${FRONTEND_PORT:-$(sed -n 's/^FRONTEND_PORT=//p' .env | tr -d '\r')}"
-URL="http://localhost:${PORT:-8080}"
+URL="http://localhost:${PORT:-3000}"
 mkdir -p "$STATE"
 
 if [ -z "${IMAGE_TAG:-}" ]; then

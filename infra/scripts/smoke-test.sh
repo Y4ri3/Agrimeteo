@@ -1,7 +1,7 @@
 #!/bin/sh
 # Usage: smoke-test.sh [base_url]  -- vérifie le front, l'API derrière nginx et une analyse complète (C-06).
 set -eu
-BASE="${1:-http://localhost:8080}"
+BASE="${1:-http://localhost:3000}"
 
 curl -fsS --max-time 10 "$BASE/" >/dev/null
 echo "front OK"

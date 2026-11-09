@@ -5,7 +5,7 @@ export default defineConfig({
   timeout: 30_000,
   reporter: [["list"], ["junit", { outputFile: "reports/junit.xml" }]],
   use: {
-    baseURL: process.env.E2E_BASE_URL ?? "http://localhost:8080",
+    baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000",
     launchOptions: process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {},
   },
 });
