@@ -1,10 +1,10 @@
-.PHONY: setup check ci up down dev smoke e2e deploy rollback verify-deploy
+.PHONY: setup check ci up down dev smoke e2e deploy rollback
 setup:
 	$(MAKE) -C ml setup
 	$(MAKE) -C backend setup
 	$(MAKE) -C frontend setup
 check:
-	python3 scripts/check_env_example.py && python3 scripts/check_imports.py && python3 scripts/check_rules_profiles.py && python3 scripts/check_openapi.py && python3 scripts/check_secrets.py
+	python3 scripts/check.py && python3 scripts/check_openapi.py
 ci: check
 	$(MAKE) -C ml ci
 	$(MAKE) -C backend ci
@@ -23,5 +23,3 @@ deploy:
 	sh infra/scripts/deploy-local.sh
 rollback:
 	sh infra/scripts/rollback.sh
-verify-deploy:
-	sh infra/scripts/verify-deploy.sh
