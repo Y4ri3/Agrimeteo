@@ -1,30 +1,30 @@
-"""Routes de l'API v1. SQUELETTE : les réponses viennent de app/services/stub.py (lot 3 à brancher)."""
+"""Routes de l'API v1 : validation des entrées, fournisseur, qualité, indicateurs, moteur."""
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+import logging
+from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Query, Request
 
-from app.core import config
+from app import providers
 from app.core.errors import AppError
 from app.schemas.common import ErrorResponse, Location
 from app.schemas.indicators import IndicatorsResponse
 from app.schemas.predictions import (
     AgronomicCultivability,
     AnalysisWindow,
-    Confidence,
-    CriterionResult,
     CropsResponse,
-    MeteoFavorability,
     PredictionRequest,
     PredictionResponse,
     SoilMoisture,
 )
 from app.schemas.weather import GeocodeResponse, Period, WeatherResponse
-from app.services import stub
+from app.services import crops, engine, quality, validation
+from app.services import indicators as indicator_service
 
+log = logging.getLogger("agrimeteo.api")
 router = APIRouter(prefix="/api/v1")
 ERRORS = {
     # Libellé explicite : celui par défaut vient de http.HTTPStatus et change selon la version de Python.
@@ -42,13 +42,19 @@ def rid(request: Request) -> str:
     return request.state.request_id
 
 
+def _log(request: Request, what: str, lat: float, lon: float) -> None:
+    # Les coordonnées sont arrondies dans les journaux (cahier, 9.9).
+    log.info("%s lat=%.1f lon=%.1f request_id=%s", what, lat, lon, rid(request))
+
+
 @router.get("/geocode", response_model=GeocodeResponse, responses=ERRORS, tags=["geocode"])
 def geocode(
     q: Annotated[str, Query(min_length=2, max_length=100)],
     limit: Annotated[int, Query(ge=1, le=10)] = 5,
     language: str = "fr",
+    source: str | None = None,
 ):
-    return GeocodeResponse(results=stub.search_places(q, limit))
+    return GeocodeResponse(results=providers.resolve(source).geocode(q, limit, language))
 
 
 @router.get("/weather", response_model=WeatherResponse, responses=ERRORS, tags=["weather"])
@@ -60,29 +66,20 @@ def weather(
     end_date: date,
     source: str | None = None,
 ):
-    if start_date > end_date:
-        raise AppError(
-            422,
-            "VALIDATION_ERROR",
-            "La date de début doit précéder la date de fin.",
-            [{"field": "start_date"}],
-        )
-    if (end_date - start_date).days + 1 > config.MAX_PERIOD_DAYS:
-        raise AppError(
-            422,
-            "PERIOD_TOO_LONG",
-            "La période demandée dépasse la durée maximale autorisée.",
-            [{"field": "end_date", "max_period_days": config.MAX_PERIOD_DAYS}],
-        )
-    daily = stub.daily_series(start_date, end_date)
+    validation.check_period(start_date, end_date)
+    provider = providers.resolve(source)
+    _log(request, "weather", latitude, longitude)
+    series, report = quality.check(
+        provider.daily(latitude, longitude, start_date, end_date), start_date, end_date
+    )
     return WeatherResponse(
         request_id=rid(request),
         location=Location(latitude=latitude, longitude=longitude),
-        source=stub.STUB_SOURCE,
+        source=provider.source,
         period=Period(start_date=start_date, end_date=end_date),
         units={"precipitation": "mm", "temperature": "°C", "relative_humidity": "%", "et0": "mm"},
-        daily=daily,
-        quality=stub.quality_of(daily),
+        daily=series,
+        quality=report,
     )
 
 
@@ -95,21 +92,25 @@ def indicators(
     window_days: Annotated[int, Query(ge=7, le=90)] = 30,
     source: str | None = None,
 ):
-    ref = reference_date or stub.default_reference_date()
-    ind, quality = stub.compute_indicators(ref, window_days)
+    ref = reference_date or validation.default_reference_date()
+    start, end = indicator_service.window(ref, window_days)
+    validation.check_period(start, end)
+    provider = providers.resolve(source)
+    _log(request, "indicators", latitude, longitude)
+    ind, report, src = indicator_service.analyse(provider, latitude, longitude, start, end, window_days)
     return IndicatorsResponse(
         request_id=rid(request),
         location=Location(latitude=latitude, longitude=longitude),
         window_days=window_days,
-        source=stub.STUB_SOURCE,
+        source=src,
         indicators=ind,
-        quality=quality,
+        quality=report,
     )
 
 
 @router.get("/crops", response_model=CropsResponse, responses={500: {"model": ErrorResponse}}, tags=["crops"])
-def crops():
-    return CropsResponse(crops=stub.CROPS)
+def list_crops():
+    return CropsResponse(crops=crops.CROPS)
 
 
 @router.post(
@@ -119,38 +120,32 @@ def crops():
     tags=["predictions"],
 )
 def predictions(request: Request, body: PredictionRequest):
-    crop = next((c for c in stub.CROPS if c.id == body.crop_id), None)
+    crop = crops.find(body.crop_id)
     if crop is None:
-        raise AppError(404, "CROP_NOT_FOUND", "Ce profil de culture n'existe pas.", [{"field": "crop_id"}])
-    ref = body.reference_date or stub.default_reference_date()
-    ind, quality = stub.compute_indicators(ref, body.window_days)
+        raise AppError(404, "CROP_NOT_FOUND", "Cette culture n'existe pas.", [{"field": "crop_id"}])
+    ref = body.reference_date or validation.default_reference_date()
+    start, end = indicator_service.window(ref, body.window_days)
+    validation.check_period(start, end)
+    provider = providers.resolve(body.source)
+    lat, lon = body.location.latitude, body.location.longitude
+    _log(request, "predictions", lat, lon)
+    ind, report, src = indicator_service.analyse(provider, lat, lon, start, end, body.window_days)
+    favorability, confidence, limits = engine.evaluate(crop, ind, report, src)
     return PredictionResponse(
         request_id=rid(request),
-        analysis_window=AnalysisWindow(
-            start_date=ref - timedelta(days=body.window_days - 1), end_date=ref, days=body.window_days
-        ),
+        analysis_window=AnalysisWindow(start_date=start, end_date=end, days=body.window_days),
         crop=crop,
-        meteorological_favorability=MeteoFavorability(
-            level="indetermine",
-            summary="Moteur de règles non branché : réponse factice du squelette.",
-            criteria=[
-                CriterionResult(
-                    id="gel", status="non_evaluable", explanation="Moteur non branché (squelette)."
-                )
-            ],
-        ),
+        meteorological_favorability=favorability,
         soil_moisture=SoilMoisture(
-            available=False, note="Estimation de modèle non disponible dans le squelette."
+            available=False, note="Estimation de modèle, non mesurée sur la parcelle (non branchée)."
         ),
         agronomic_cultivability=AgronomicCultivability(
             reason="Aucune donnée de sol fiable ni observation de parcelle."
         ),
         indicators=ind,
-        data_quality=quality,
-        source=stub.STUB_SOURCE,
-        confidence=Confidence(
-            level="faible", basis="Squelette : aucune donnée réelle. Ce n'est pas une probabilité."
-        ),
-        limits=["Réponse factice du squelette.", "Seuils du profil à valider."],
-        attribution=stub.STUB_SOURCE.attribution,
+        data_quality=report,
+        source=src,
+        confidence=confidence,
+        limits=limits,
+        attribution=src.attribution,
     )

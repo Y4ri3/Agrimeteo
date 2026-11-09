@@ -796,7 +796,7 @@
     }
   },
   "info": {
-    "description": "Contrat d'API d'AgriMétéo (v1). Squelette : réponses factices.",
+    "description": "Contrat d'API d'AgriMétéo (v1).",
     "title": "AgriMétéo API",
     "version": "0.1.0"
   },
@@ -804,7 +804,7 @@
   "paths": {
     "/api/v1/crops": {
       "get": {
-        "operationId": "crops_api_v1_crops_get",
+        "operationId": "list_crops_api_v1_crops_get",
         "responses": {
           "200": {
             "content": {
@@ -827,7 +827,7 @@
             "description": "Internal Server Error"
           }
         },
-        "summary": "Crops",
+        "summary": "List Crops",
         "tags": [
           "crops"
         ]
@@ -868,6 +868,22 @@
               "default": "fr",
               "title": "Language",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
             }
           }
         ],
