@@ -1,20 +1,25 @@
 # AgriMétéo
 
-Application d'aide à la décision agricole (projet DevOps, DIT L3). Monorepo : `backend/` (API), `ml/` (règles), `frontend/`, `e2e/`, `infra/`, `scripts/`, `docs/`.
+Application web qui estime si les conditions météo sont favorables à la mise en culture (projet DevOps, DIT L3). Cahier des charges : `AgriMeteo_Cahier_des_charges.docx`.
 
-## Démarrer (sans Docker)
+Monorepo : `backend/` (API FastAPI) · `ml/` (règles) · `frontend/` (React) · `e2e/` · `infra/` · `scripts/` · `docs/`.
+
+navigateur → **nginx (frontend)** → `/api/*` → **backend FastAPI** (interne) → fournisseur météo + moteur de règles `ml/`.
+Seul le frontend est publié. `ml` n'importe jamais `backend` (vérifié par `scripts/check.py`). Le contrat est `docs/api/openapi.json`, généré depuis le code. Trois notions toujours séparées : favorabilité météo, humidité du sol (indicateur modélisé), cultivabilité (non évaluée).
+
+## Démarrer
+```bash
+cp .env.example .env && make up && make smoke      # http://localhost:3000
+```
+Sans Docker :
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
 make -C backend setup && uvicorn app.main:app --app-dir backend --reload   # API :8000/docs
 cd frontend && npm ci && npm run dev                                      # UI :5173
 ```
-## Démarrer (Docker, Compose >= 2.24)
-```bash
-cp .env.example .env && make up && make smoke      # http://localhost:8080
-```
-Sous Windows sans `make`, depuis Git Bash : `sh infra/scripts/deploy-local.sh`.
-## État honnête
-Squelette : l'API répond avec des **données factices** (fournisseur `fixture`, `backend/app/providers/fixture.py`). Rien d'agronomique n'est réel.
-CI : GitHub Actions (`.github/workflows/ci.yml`), **pas encore exécutée sur GitHub**.
-Déploiement, retour arrière, e2e et essai de migration : exécutés en local, voir **`docs/guide-lots-5-6.md`**.
-Preuves d'exécution : `docs/preuves/`. Exploitation : `docs/exploitation.md`. Conventions : `CONTRIBUTING.md`. Décisions : `docs/decisions/`.
+`make ci` lance tous les contrôles (sans Docker). Sous Windows sans `make` : `sh infra/scripts/deploy-local.sh` depuis Git Bash.
+
+## État
+Les données sont **factices** (fournisseur `fixture`) et le moteur de décision est provisoire : Open-Meteo/CSV relèvent du lot 1, le moteur de règles du lot 2. La CI GitHub Actions n'a pas encore tourné sur GitHub.
+
+Voir aussi : `docs/exploitation.md` (pipeline, déploiement, retour arrière), `docs/decisions.md`, `docs/migration.md`, `CONTRIBUTING.md`.
