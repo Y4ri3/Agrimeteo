@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import BaseModel
 
@@ -10,6 +10,8 @@ from .common import Location
 class Source(BaseModel):
     id: str
     attribution: str | None = None
+    license: str | None = None
+    retrieved_at: datetime | None = None
     spatial_resolution_note: str | None = None
 
 

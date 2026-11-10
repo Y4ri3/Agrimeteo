@@ -31,6 +31,7 @@ class OpenMeteoProvider:
     source = Source(
         id="open_meteo",
         attribution="Weather data by Open-Meteo.com",
+        license="CC BY 4.0",
         spatial_resolution_note="Réanalyse ERA5 : maille de plusieurs dizaines de km, pas la parcelle.",
     )
 

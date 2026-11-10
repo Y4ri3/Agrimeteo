@@ -82,7 +82,10 @@ export function ResultView({ result }: { result: Prediction }) {
       </div>
 
       <p className="muted" data-testid="attribution">
-        {result.attribution ?? `Source : ${result.source.id}${result.source.spatial_resolution_note ? ` — ${result.source.spatial_resolution_note}` : ""}`}
+        {result.attribution ?? `Source : ${result.source.id}`}
+        {result.source.license ? ` · Licence ${result.source.license}` : ""}
+        {result.source.retrieved_at ? ` · Données récupérées le ${new Date(result.source.retrieved_at).toLocaleDateString("fr-FR")}` : ""}
+        {result.source.spatial_resolution_note ? ` — ${result.source.spatial_resolution_note}` : ""}
       </p>
     </section>
   );

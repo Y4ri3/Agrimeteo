@@ -47,6 +47,7 @@ class CsvProvider:
     source = Source(
         id="csv",
         attribution="Weather data by Open-Meteo.com",
+        license="CC BY 4.0",
         spatial_resolution_note="Extraction Open-Meteo (ERA5) : maille de dizaines de km.",
     )
 

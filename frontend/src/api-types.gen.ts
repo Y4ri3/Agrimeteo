@@ -384,6 +384,10 @@ export interface components {
             attribution?: string | null;
             /** Id */
             id: string;
+            /** License */
+            license?: string | null;
+            /** Retrieved At */
+            retrieved_at?: string | null;
             /** Spatial Resolution Note */
             spatial_resolution_note?: string | null;
         };

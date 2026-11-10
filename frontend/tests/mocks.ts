@@ -4,7 +4,7 @@ import { setupServer } from "msw/node";
 export const API = "http://api.test/api/v1";
 
 const quality = { completeness_pct: { precipitation_mm: 94.1, tmax_c: 100, tmin_c: 100, rh_mean_pct: 100, et0_mm: 100 }, missing_days: 2, flagged_values: [] };
-const source = { id: "fixture", attribution: "Weather data by Open-Meteo.com", spatial_resolution_note: null };
+const source = { id: "open_meteo", attribution: "Weather data by Open-Meteo.com", license: "CC BY 4.0", retrieved_at: "2026-11-10T12:00:00Z", spatial_resolution_note: null };
 
 export const prediction = {
   request_id: "req-1",

@@ -30,7 +30,10 @@ test("le résultat affiche ensemble les trois notions et les limites (FE-03)", a
 
 test("l'attribution de la source est affichée (FE-06)", async () => {
   await analyse();
-  expect(await screen.findByTestId("attribution")).toHaveTextContent("Weather data by Open-Meteo.com");
+  const text = await screen.findByTestId("attribution");
+  expect(text).toHaveTextContent("Weather data by Open-Meteo.com");
+  expect(text).toHaveTextContent("Licence CC BY 4.0");
+  expect(text).toHaveTextContent("récupérées le 10/11/2026");
 });
 
 test.each([

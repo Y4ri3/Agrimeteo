@@ -130,3 +130,20 @@ def test_exact_coordinates_never_reach_the_logs(client, caplog, monkeypatch):  #
             },
         )
     assert "14.69371" not in caplog.text and "17.44406" not in caplog.text
+
+
+def test_source_keeps_license_and_retrieval_date(client, monkeypatch):  # cahier 7.2
+    monkeypatch.setitem(
+        providers.REGISTRY, "open_meteo", provider(lambda request: httpx.Response(200, json=ARCHIVE))
+    )
+    params = {
+        "latitude": 1.5,
+        "longitude": 2.5,
+        "start_date": "2025-10-01",
+        "end_date": "2025-10-03",
+        "source": "open_meteo",
+    }
+    first = client.get("/api/v1/weather", params=params).json()["source"]
+    again = client.get("/api/v1/weather", params=params).json()["source"]  # servi par le cache
+    assert first["license"] == "CC BY 4.0" and first["retrieved_at"]
+    assert again["retrieved_at"] and again["license"] == "CC BY 4.0"
