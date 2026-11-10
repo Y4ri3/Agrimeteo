@@ -18,6 +18,7 @@ CACHE_TTL_HOURS = _int("CACHE_TTL_HOURS", 24)
 OPEN_METEO_TIMEOUT_SECONDS = _int("OPEN_METEO_TIMEOUT_SECONDS", 15)
 CACHE_DIR = os.environ.get("CACHE_DIR", "/var/cache/agrimeteo")
 CSV_PATH = os.environ.get("CSV_PATH", "ml/data/sample/meteo_extrait.csv")
+RULES_DIR = os.environ.get("RULES_DIR", "ml/rules")
 # Sous ce taux de complétude (en %), une variable est jugée insuffisante : résultat « indéterminé » (D-04).
 MIN_COMPLETENESS_PCT = _int("MIN_COMPLETENESS_PCT", 80)
 CORS_ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") if o.strip()]

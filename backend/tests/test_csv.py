@@ -57,7 +57,7 @@ def test_csv_is_selectable_and_indeterminate_outside_coverage(client, monkeypatc
         "/api/v1/predictions",
         json={
             "location": {"latitude": 14.7, "longitude": -17.4},
-            "crop_id": "culture_exemple_a",
+            "crop_id": "test_a",
             "reference_date": "2025-10-20",
             "window_days": 14,
             "source": "csv",

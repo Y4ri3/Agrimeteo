@@ -8,12 +8,9 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-from app.core import config
 from app.schemas.weather import DailyRecord, FlaggedValue, Quality
 
 VARIABLES = ["precipitation_mm", "tmax_c", "tmin_c", "rh_mean_pct", "et0_mm"]
-# Variables sans lesquelles la favorabilité ne peut pas être évaluée (cahier, 7.1).
-ESSENTIAL = ["precipitation_mm", "tmax_c", "tmin_c"]
 
 
 def check(daily: list[DailyRecord], start: date, end: date) -> tuple[list[DailyRecord], Quality]:
@@ -75,12 +72,3 @@ def _sanitize(rec: DailyRecord, flagged: list[FlaggedValue]) -> DailyRecord:
         reject("tmin_c")
         reject("tmax_c")
     return DailyRecord(**data)
-
-
-def insufficient(quality: Quality) -> list[str]:
-    """Variables essentielles sous le seuil de complétude configuré (vide = données suffisantes)."""
-    return [
-        f"{v} : {quality.completeness_pct.get(v, 0)} % de données (minimum {config.MIN_COMPLETENESS_PCT} %)"
-        for v in ESSENTIAL
-        if quality.completeness_pct.get(v, 0) < config.MIN_COMPLETENESS_PCT
-    ]

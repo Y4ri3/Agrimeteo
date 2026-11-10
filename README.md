@@ -20,6 +20,6 @@ cd frontend && npm ci && npm run dev                                      # UI :
 `make ci` lance tous les contrôles (sans Docker). Sous Windows sans `make` : `sh infra/scripts/deploy-local.sh` depuis Git Bash.
 
 ## État
-Trois fournisseurs : `open_meteo` (données réelles, `WEATHER_PROVIDER=open_meteo`), `csv` (extrait réel hors ligne) et `fixture` (factice, défaut des tests et de la CI). Le moteur de décision est provisoire (toujours « indéterminé ») : le moteur de règles et les seuils relèvent du lot 2. La CI GitHub Actions n'a pas encore tourné sur GitHub.
+Trois fournisseurs : `open_meteo` (données réelles, `WEATHER_PROVIDER=open_meteo`), `csv` (extrait réel hors ligne) et `fixture` (factice, défaut des tests et de la CI). Le moteur de règles (`ml/`) évalue l'arachide et le mil avec des seuils sourcés mais encore « à valider » (`ml/README.md`) : le résultat plafonne à « favorable sous réserve ». La CI GitHub Actions n'a pas encore tourné sur GitHub.
 
 Voir aussi : `docs/exploitation.md` (pipeline, déploiement, retour arrière), `docs/decisions.md`, `docs/migration.md`, `CONTRIBUTING.md`.

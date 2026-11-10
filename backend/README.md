@@ -2,9 +2,8 @@
 
 Les 6 endpoints du contrat sont branchés sur une interface de fournisseurs (`app/providers/`), un contrôle
 qualité, un cache de fichiers et des indicateurs. Fournisseurs : `open_meteo` (réel), `csv` (extrait réel hors ligne,
-`CSV_PATH`) et `fixture` (**factice**, défaut, sans réseau). Aucun test n'appelle Internet. Le moteur de décision
-(`app/services/engine.py`) et les profils de culture (`app/services/crops.py`) sont **provisoires** en
-attendant le module `ml` (lot 2) : sans seuil validé, le niveau est toujours « indéterminé ».
+`CSV_PATH`) et `fixture` (**factice**, défaut, sans réseau). Aucun test n'appelle Internet. Les indicateurs, les profils de culture (`RULES_DIR`) et la décision viennent du
+module `ml` (lot 2) : `app/services/engine.py` et `crops.py` ne font que traduire ses résultats pour l'API.
 
 ```bash
 make setup          # installe ml et backend en mode éditable

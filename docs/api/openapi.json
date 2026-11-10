@@ -365,10 +365,55 @@
         "type": "object"
       },
       "Indicators": {
+        "description": "Indicateurs du cahier §7.3, calculés par le module ml. null = non calculable (jamais 0).",
         "properties": {
+          "diurnal_range_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diurnal Range C"
+          },
+          "et0_sum_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Et0 Sum Mm"
+          },
           "frost_days": {
             "title": "Frost Days",
             "type": "integer"
+          },
+          "max_dry_spell_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Dry Spell Days"
+          },
+          "rain_max_3d_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rain Max 3D Mm"
           },
           "rain_sum_mm": {
             "additionalProperties": {
@@ -384,6 +429,50 @@
             "title": "Rain Sum Mm",
             "type": "object"
           },
+          "rh_mean_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rh Mean Pct"
+          },
+          "tmax_max_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmax Max C"
+          },
+          "tmean_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmean C"
+          },
+          "tmin_min_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmin Min C"
+          },
           "water_balance_mm": {
             "anyOf": [
               {
@@ -394,6 +483,17 @@
               }
             ],
             "title": "Water Balance Mm"
+          },
+          "wet_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wet Days"
           }
         },
         "required": [

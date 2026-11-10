@@ -58,20 +58,14 @@ def check_env_example():
     return [f".env.example : variable manquante {v}" for v in sorted(used - declared)]
 
 
-# --- P-06 : un profil « valide » exige une source et des seuils ---------------------------------------
+# --- P-06 : chaque seuil d'un profil a une source (règles de validation du module ml) ---------------
 def check_rules_profiles():
     import yaml
+    from agrimeteo_ml.profiles import problems
 
     errs = []
     for f in sorted((root / "ml/rules").glob("*.yaml")):
-        p = yaml.safe_load(f.read_text(encoding="utf-8"))
-        if p.get("status") not in ("a_valider", "valide"):
-            errs.append(f"{f.name}: status invalide")
-        if p.get("status") == "valide":
-            if not p.get("source"):
-                errs.append(f"{f.name}: 'valide' sans source")
-            if any(c.get("threshold") is None for c in p.get("criteria", [])):
-                errs.append(f"{f.name}: 'valide' avec seuil null")
+        errs += [f"{f.name} : {p}" for p in problems(yaml.safe_load(f.read_text(encoding="utf-8")) or {})]
     return errs
 
 

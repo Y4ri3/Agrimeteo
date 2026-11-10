@@ -8,7 +8,7 @@ from app.providers.fixture import FixtureProvider
 
 REF = "2026-10-21"
 LOC = {"latitude": 14.7, "longitude": -17.4}
-PRED = {"location": LOC, "crop_id": "culture_exemple_a", "reference_date": REF}
+PRED = {"location": LOC, "crop_id": "test_a", "reference_date": REF}
 
 
 def test_health(client):  # A-01
@@ -85,7 +85,7 @@ def test_indicators_success(client):
     body = r.json()
     assert r.status_code == 200
     assert body["window_days"] == 14
-    assert set(body["indicators"]["rain_sum_mm"]) == {"7d", "14d"}
+    assert set(body["indicators"]["rain_sum_mm"]) == {"3d", "7d", "14d"}
 
 
 @pytest.mark.parametrize("window", [6, 91])
@@ -115,9 +115,9 @@ def test_prediction_returns_three_distinct_blocks(client):  # A-06
     assert body["limits"]
 
 
-def test_prediction_never_favorable_with_unvalidated_profile(client):  # P-03, P-07
+def test_prediction_never_favorable_with_unvalidated_profile(client):  # P-07
     level = client.post("/api/v1/predictions", json=PRED).json()["meteorological_favorability"]["level"]
-    assert level not in {"favorable", "favorable_sous_reserve"}
+    assert level != "favorable"
 
 
 def test_prediction_unknown_crop(client):  # A-04
@@ -211,3 +211,44 @@ def test_second_identical_call_is_served_from_cache(client, monkeypatch):
     second = client.get("/api/v1/weather", params=params).json()["daily"]
     assert first == second
     assert len(calls) == 1
+
+
+# ---------- verdicts de bout en bout (profils de test) ----------
+def _weather_provider(monkeypatch, rain):
+    class Fixed(FixtureProvider):
+        def daily(self, latitude, longitude, start, end):
+            return [
+                r.model_copy(update={"precipitation_mm": rain})
+                for r in super().daily(latitude, longitude, start, end)
+            ]
+
+    monkeypatch.setitem(providers.REGISTRY, "fixture", Fixed())
+
+
+def _level(client, crop_id):
+    body = client.post("/api/v1/predictions", json={**PRED, "crop_id": crop_id}).json()
+    return body["meteorological_favorability"]["level"], body
+
+
+def test_rainy_window_with_validated_profile_is_favorable(client, monkeypatch):
+    _weather_provider(monkeypatch, 12.0)
+    level, body = _level(client, "test_valide")
+    assert level == "favorable" and body["confidence"]["level"] == "moyenne"
+    assert all(c["status"] == "ok" for c in body["meteorological_favorability"]["criteria"])
+
+
+def test_same_window_with_unvalidated_profile_is_capped(client, monkeypatch):  # P-07
+    _weather_provider(monkeypatch, 12.0)
+    assert _level(client, "test_a")[0] == "favorable_sous_reserve"
+
+
+def test_dry_window_is_unfavorable_and_explained(client, monkeypatch):  # P-04, P-05
+    _weather_provider(monkeypatch, 0.0)
+    level, body = _level(client, "test_valide")
+    assert level == "peu_favorable"
+    assert "seuil défavorable franchi" in body["meteorological_favorability"]["summary"]
+
+
+def test_crops_come_from_profile_files(client):
+    ids = {c["id"] for c in client.get("/api/v1/crops").json()["crops"]}
+    assert ids == {"test_a", "test_valide"}

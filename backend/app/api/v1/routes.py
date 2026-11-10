@@ -110,7 +110,7 @@ def indicators(
 
 @router.get("/crops", response_model=CropsResponse, responses={500: {"model": ErrorResponse}}, tags=["crops"])
 def list_crops():
-    return CropsResponse(crops=crops.CROPS)
+    return CropsResponse(crops=crops.all_crops())
 
 
 @router.post(
@@ -130,7 +130,7 @@ def predictions(request: Request, body: PredictionRequest):
     lat, lon = body.location.latitude, body.location.longitude
     _log(request, "predictions", lat, lon)
     ind, report, src = indicator_service.analyse(provider, lat, lon, start, end, body.window_days)
-    favorability, confidence, limits = engine.evaluate(crop, ind, report, src)
+    favorability, confidence, limits = engine.evaluate_crop(crop.id, ind, report, src)
     return PredictionResponse(
         request_id=rid(request),
         analysis_window=AnalysisWindow(start_date=start, end_date=end, days=body.window_days),

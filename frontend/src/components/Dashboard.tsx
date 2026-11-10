@@ -1,14 +1,40 @@
-import { getIndicators, getWeather, type Prediction, type PredictionRequest } from "../api";
+import { getIndicators, getWeather, type IndicatorsResponse, type Prediction, type PredictionRequest } from "../api";
 import { useAsync } from "../useAsync";
 import { Async } from "./Async";
 import { Chart } from "./Chart";
 
 // Définitions du cahier des charges (§7.3).
 const DEFINITIONS = [
-  ["Pluie cumulée", "Précipitations cumulées sur les 7 derniers jours et sur la fenêtre."],
+  ["Pluie cumulée", "Précipitations cumulées sur les derniers jours de la fenêtre (3, 7, 14, 30 jours ou la fenêtre entière)."],
+  ["Plus forte pluie sur 3 jours", "Cumul maximal sur 3 jours consécutifs : indique si un épisode pluvieux suffisant a eu lieu."],
+  ["Jours de pluie", "Nombre de jours avec au moins 1 mm de pluie."],
+  ["Plus longue période sèche", "Plus longue série de jours consécutifs avec moins de 1 mm de pluie."],
+  ["Température moyenne", "Moyenne des (Tmin + Tmax) / 2 sur la fenêtre."],
   ["Jours de gel", "Nombre de jours où la température minimale est à 0 °C ou en dessous."],
-  ["Bilan pluie − ET0", "Pluie cumulée moins évapotranspiration de référence : bilan simplifié de l'atmosphère, pas un bilan hydrique du sol."],
+  ["Amplitude thermique", "Moyenne de Tmax − Tmin."],
+  ["ET0 cumulée", "Évapotranspiration de référence cumulée (FAO n° 56), si la source la fournit."],
+  ["Bilan pluie − ET0", "Pluie cumulée moins ET0 : bilan simplifié de l'atmosphère, pas un bilan hydrique du sol."],
 ];
+
+type Ind = IndicatorsResponse["indicators"];
+const value = (v: number | null | undefined, unit: string) => (v === null || v === undefined ? "n/d" : `${v}${unit}`);
+
+function rows(i: Ind): [string, string][] {
+  return [
+    ...Object.entries(i.rain_sum_mm).map(([k, v]): [string, string] => [`Pluie cumulée ${k}`, value(v, " mm")]),
+    ["Plus forte pluie sur 3 jours", value(i.rain_max_3d_mm, " mm")],
+    ["Jours de pluie", value(i.wet_days, "")],
+    ["Plus longue période sèche", value(i.max_dry_spell_days, " jours")],
+    ["Température moyenne", value(i.tmean_c, " °C")],
+    ["Tmin la plus basse", value(i.tmin_min_c, " °C")],
+    ["Tmax la plus haute", value(i.tmax_max_c, " °C")],
+    ["Jours de gel", String(i.frost_days)],
+    ["Amplitude thermique", value(i.diurnal_range_c, " °C")],
+    ["ET0 cumulée", value(i.et0_sum_mm, " mm")],
+    ["Bilan pluie − ET0", value(i.water_balance_mm, " mm")],
+    ["Humidité de l'air", value(i.rh_mean_pct, " %")],
+  ];
+}
 
 /** Tableau de bord : affiche les valeurs de GET /weather et GET /indicators, sans aucun recalcul (I-05). */
 export function Dashboard({ request, result }: { request: PredictionRequest; result: Prediction }) {
@@ -28,11 +54,12 @@ export function Dashboard({ request, result }: { request: PredictionRequest; res
           <div className="card" data-testid="indicators">
             <h3>Indicateurs</h3>
             <dl>
-              {Object.entries(d.indicators.rain_sum_mm).map(([k, v]) => (
-                <div key={k}><dt>Pluie cumulée {k}</dt><dd>{v === null ? "n/d" : `${v} mm`}</dd></div>
+              {rows(d.indicators).map(([label, v]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{v}</dd>
+                </div>
               ))}
-              <div><dt>Jours de gel</dt><dd>{d.indicators.frost_days}</dd></div>
-              <div><dt>Bilan pluie − ET0</dt><dd>{d.indicators.water_balance_mm === null ? "n/d" : `${d.indicators.water_balance_mm} mm`}</dd></div>
             </dl>
             <p className="muted">Jours avec donnée manquante : {d.quality.missing_days}</p>
           </div>

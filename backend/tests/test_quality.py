@@ -49,8 +49,3 @@ def test_missing_and_duplicate_dates_are_counted():  # D-03
     series, q = run([rec(1), rec(1), rec(3)])
     assert ("date", "duplicate") in reasons(q) and ("date", "missing") in reasons(q)
     assert len(series) == 3 and series[1].precipitation_mm is None
-
-
-def test_insufficient_below_threshold():  # D-04
-    _, q = run([rec(1, precipitation_mm=None), rec(2, precipitation_mm=None), rec(3)])
-    assert quality.insufficient(q)

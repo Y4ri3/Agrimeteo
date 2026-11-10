@@ -1,18 +1,32 @@
-"""Profils de culture. PROVISOIRE : le lot 2 fournira le chargeur des profils YAML (ml/rules/)."""
+"""Profils de culture : lus dans les fichiers YAML du module ml (RULES_DIR)."""
 
 from __future__ import annotations
 
+from functools import lru_cache
+
+from agrimeteo_ml import Profile, load_profiles
+
+from app.core import config
 from app.schemas.predictions import Crop
 
-CROPS = [
-    Crop(
-        id="culture_exemple_a",
-        label="Culture exemple A (profil de démonstration)",
-        rule_profile_version="0.1.0",
-        rule_status="a_valider",
-    ),
-]
+
+@lru_cache
+def _profiles(directory: str) -> dict[str, Profile]:
+    return load_profiles(directory)
+
+
+def profile(crop_id: str) -> Profile | None:
+    return _profiles(config.RULES_DIR).get(crop_id)
+
+
+def _crop(p: Profile) -> Crop:
+    return Crop(id=p.id, label=p.label, rule_profile_version=p.version, rule_status=p.status)
+
+
+def all_crops() -> list[Crop]:
+    return [_crop(p) for p in _profiles(config.RULES_DIR).values()]
 
 
 def find(crop_id: str) -> Crop | None:
-    return next((c for c in CROPS if c.id == crop_id), None)
+    p = profile(crop_id)
+    return _crop(p) if p else None

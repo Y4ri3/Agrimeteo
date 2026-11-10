@@ -255,16 +255,37 @@ export interface components {
             /** Version */
             version: string;
         };
-        /** Indicators */
+        /**
+         * Indicators
+         * @description Indicateurs du cahier §7.3, calculés par le module ml. null = non calculable (jamais 0).
+         */
         Indicators: {
+            /** Diurnal Range C */
+            diurnal_range_c?: number | null;
+            /** Et0 Sum Mm */
+            et0_sum_mm?: number | null;
             /** Frost Days */
             frost_days: number;
+            /** Max Dry Spell Days */
+            max_dry_spell_days?: number | null;
+            /** Rain Max 3D Mm */
+            rain_max_3d_mm?: number | null;
             /** Rain Sum Mm */
             rain_sum_mm: {
                 [key: string]: number | null;
             };
+            /** Rh Mean Pct */
+            rh_mean_pct?: number | null;
+            /** Tmax Max C */
+            tmax_max_c?: number | null;
+            /** Tmean C */
+            tmean_c?: number | null;
+            /** Tmin Min C */
+            tmin_min_c?: number | null;
             /** Water Balance Mm */
             water_balance_mm: number | null;
+            /** Wet Days */
+            wet_days?: number | null;
         };
         /** IndicatorsResponse */
         IndicatorsResponse: {
