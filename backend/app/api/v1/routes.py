@@ -137,7 +137,8 @@ def predictions(request: Request, body: PredictionRequest):
         crop=crop,
         meteorological_favorability=favorability,
         soil_moisture=SoilMoisture(
-            available=False, note="Estimation de modèle, non mesurée sur la parcelle (non branchée)."
+            available=False,
+            note="Estimation de modèle, jamais mesurée sur la parcelle ; indisponible pour l'instant.",
         ),
         agronomic_cultivability=AgronomicCultivability(
             reason="Aucune donnée de sol fiable ni observation de parcelle."

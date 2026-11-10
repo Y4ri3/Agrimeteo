@@ -30,7 +30,7 @@ export const errorBody = (code: string, message = "msg serveur") => ({ error: { 
 export const handlers = [
   http.get(`${API}/crops`, () => HttpResponse.json({ crops: [{ id: "c", label: "Culture C", rule_profile_version: "0.1.0", rule_status: "a_valider" }] })),
   http.get(`${API}/geocode`, ({ request }) => {
-    const q = new URL(request.url).searchParams.get("q");
+    const q = (new URL(request.url).searchParams.get("q") ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     return HttpResponse.json({ results: q === "thies" ? [{ name: "Thiès", country: "Sénégal", admin1: "Thiès", latitude: 14.79, longitude: -16.93 }] : [] });
   }),
   http.post(`${API}/predictions`, () => HttpResponse.json(prediction)),

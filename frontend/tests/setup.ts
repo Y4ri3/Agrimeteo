@@ -9,3 +9,6 @@ afterEach(() => {
   server.resetHandlers();
 });
 afterAll(() => server.close());
+
+// jsdom n'implémente pas le défilement.
+window.scrollTo = () => {};

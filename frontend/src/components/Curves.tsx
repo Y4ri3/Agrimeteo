@@ -1,15 +1,15 @@
-import { getIndicators, getWeather, type IndicatorsResponse, type Prediction, type PredictionRequest } from "../api";
-import { useAsync } from "../useAsync";
+import type { IndicatorsResponse, WeatherResponse } from "../api";
+import type { AsyncState } from "../useAsync";
 import { Async } from "./Async";
 import { Chart } from "./Chart";
 
 // Définitions du cahier des charges (§7.3).
 const DEFINITIONS = [
-  ["Pluie cumulée", "Précipitations cumulées sur les derniers jours de la fenêtre (3, 7, 14, 30 jours ou la fenêtre entière)."],
+  ["Pluie cumulée", "Précipitations cumulées sur les derniers jours de la période (3, 7, 14, 30 jours ou la période entière)."],
   ["Plus forte pluie sur 3 jours", "Cumul maximal sur 3 jours consécutifs : indique si un épisode pluvieux suffisant a eu lieu."],
   ["Jours de pluie", "Nombre de jours avec au moins 1 mm de pluie."],
   ["Plus longue période sèche", "Plus longue série de jours consécutifs avec moins de 1 mm de pluie."],
-  ["Température moyenne", "Moyenne des (Tmin + Tmax) / 2 sur la fenêtre."],
+  ["Température moyenne", "Moyenne des (Tmin + Tmax) / 2 sur la période."],
   ["Jours de gel", "Nombre de jours où la température minimale est à 0 °C ou en dessous."],
   ["Amplitude thermique", "Moyenne de Tmax − Tmin."],
   ["ET0 cumulée", "Évapotranspiration de référence cumulée (FAO n° 56), si la source la fournit."],
@@ -36,24 +36,25 @@ function rows(i: Ind): [string, string][] {
   ];
 }
 
-/** Tableau de bord : affiche les valeurs de GET /weather et GET /indicators, sans aucun recalcul (I-05). */
-export function Dashboard({ request, result }: { request: PredictionRequest; result: Prediction }) {
-  const w = result.analysis_window;
-  const { latitude, longitude } = request.location;
-  const key = `${latitude}|${longitude}|${w.start_date}|${w.end_date}`;
-  const [weather, retryWeather] = useAsync(() => getWeather(latitude, longitude, w.start_date, w.end_date), `w${key}`);
-  const [ind, retryInd] = useAsync(() => getIndicators(latitude, longitude, w.end_date, w.days), `i${key}`);
-
+/** Indicateurs et courbes de GET /indicators et GET /weather, affichés sans aucun recalcul (I-05). */
+export function Curves({
+  weather,
+  indicators,
+  onRetryWeather,
+  onRetryIndicators,
+}: {
+  weather: AsyncState<WeatherResponse>;
+  indicators: AsyncState<IndicatorsResponse>;
+  onRetryWeather: () => void;
+  onRetryIndicators: () => void;
+}) {
   return (
-    <section aria-labelledby="t-dash">
-      <h2 id="t-dash">Tableau de bord météo</h2>
-      <p className="muted">du {w.start_date} au {w.end_date}</p>
-
-      <Async state={ind} onRetry={retryInd} errorTestId="dashboard-error">
+    <div className="curves">
+      <Async state={indicators} onRetry={onRetryIndicators} errorTestId="dashboard-error">
         {(d) => (
-          <div className="card" data-testid="indicators">
-            <h3>Indicateurs</h3>
-            <dl>
+          <div data-testid="indicators">
+            <h4>Indicateurs de la période</h4>
+            <dl className="facts">
               {rows(d.indicators).map(([label, v]) => (
                 <div key={label}>
                   <dt>{label}</dt>
@@ -61,12 +62,12 @@ export function Dashboard({ request, result }: { request: PredictionRequest; res
                 </div>
               ))}
             </dl>
-            <p className="muted">Jours avec donnée manquante : {d.quality.missing_days}</p>
+            <p className="muted">Jours avec une donnée manquante ou rejetée : {d.quality.missing_days}</p>
           </div>
         )}
       </Async>
 
-      <Async state={weather} onRetry={retryWeather} isEmpty={(d) => d.daily.length === 0} emptyText="Aucune donnée météo sur la période." errorTestId="dashboard-weather-error">
+      <Async state={weather} onRetry={onRetryWeather} isEmpty={(d) => d.daily.length === 0} emptyText="Aucune donnée météo sur la période." errorTestId="dashboard-weather-error">
         {(d) => {
           const dates = d.daily.map((r) => r.date);
           return (
@@ -77,18 +78,16 @@ export function Dashboard({ request, result }: { request: PredictionRequest; res
                 { name: "Tmin", kind: "line", values: d.daily.map((r) => r.tmin_c ?? null) },
               ]} />
               <Chart title="Évapotranspiration de référence (ET0)" unit="mm" dates={dates} series={[{ name: "ET0", kind: "line", values: d.daily.map((r) => r.et0_mm ?? null) }]} />
-              <p className="muted" data-testid="dashboard-source">
-                {d.source.attribution ?? `Source : ${d.source.id}`}
-              </p>
+              <p className="muted" data-testid="dashboard-source">{d.source.attribution ?? `Source : ${d.source.id}`}</p>
             </>
           );
         }}
       </Async>
 
-      <details>
+      <details className="more">
         <summary>Définition des indicateurs</summary>
-        <dl>{DEFINITIONS.map(([t, d]) => <div key={t}><dt>{t}</dt><dd>{d}</dd></div>)}</dl>
+        <dl className="defs">{DEFINITIONS.map(([t, d]) => <div key={t}><dt>{t}</dt><dd>{d}</dd></div>)}</dl>
       </details>
-    </section>
+    </div>
   );
 }

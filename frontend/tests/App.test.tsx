@@ -1,9 +1,13 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { expect, test } from "vitest";
+import { beforeEach, expect, test } from "vitest";
 import App from "../src/App";
 import { API, errorBody, server } from "./mocks";
+
+beforeEach(() => {
+  window.location.hash = "#/analyse";
+});
 
 async function analyse() {
   const user = userEvent.setup();
@@ -13,22 +17,38 @@ async function analyse() {
   return user;
 }
 
-test("parcours nominal : culture, zone, résultat (FE-01)", async () => {
+test("la page d'accueil dit à quoi sert l'outil et mène à l'application", () => {
+  window.location.hash = "#/";
+  render(<App />);
+  expect(screen.getByRole("heading", { level: 1, name: /Puis-je semer/ })).toBeInTheDocument();
+  const cta = screen.getAllByRole("link", { name: "Vérifier pour mon champ" });
+  expect(cta[0]).toHaveAttribute("href", "#/analyse");
+  expect(screen.getByRole("img", { name: /Pluie quotidienne à Kaolack/ })).toBeInTheDocument();
+  expect(screen.getByText(/Ce que l'outil ne dit pas/)).toBeInTheDocument();
+});
+
+test("parcours nominal : culture, lieu, verdict (FE-01)", async () => {
   await analyse();
-  expect(await screen.findByTestId("block-meteo")).toBeInTheDocument();
+  expect(await screen.findByTestId("block-meteo")).toHaveTextContent("On ne peut pas conclure");
 });
 
 test("le résultat affiche ensemble les trois notions et les limites (FE-03)", async () => {
   await analyse();
   const result = await screen.findByTestId("result");
-  expect(within(result).getByTestId("block-meteo")).toHaveTextContent("Indéterminé");
   expect(within(result).getByTestId("block-soil")).toHaveTextContent("Non disponible");
-  expect(within(result).getByTestId("block-cultivability")).toHaveTextContent("Non évaluée");
+  expect(within(result).getByTestId("block-cultivability")).toHaveTextContent("Non évalué");
   expect(within(result).getByTestId("limits")).toHaveTextContent("pas de la parcelle");
   expect(within(result).getByTestId("confidence")).toHaveTextContent("pas une probabilité");
 });
 
-test("l'attribution de la source est affichée (FE-06)", async () => {
+test("les repères à surveiller et le statut du profil sont écrits dans le verdict", async () => {
+  await analyse();
+  const verdict = await screen.findByTestId("block-meteo");
+  expect(verdict).toHaveTextContent("Non évaluable. Seuil non défini.");
+  expect(verdict).toHaveTextContent("encore à valider");
+});
+
+test("l'attribution, la licence et la date de récupération sont affichées (FE-06)", async () => {
   await analyse();
   const text = await screen.findByTestId("attribution");
   expect(text).toHaveTextContent("Weather data by Open-Meteo.com");
@@ -75,53 +95,61 @@ test("la liste des cultures vide est expliquée (FE-04)", async () => {
   expect(screen.getByTestId("analyse-btn")).toBeDisabled();
 });
 
+test("on peut choisir l'autre culture", async () => {
+  server.use(http.get(`${API}/crops`, () => HttpResponse.json({ crops: [
+    { id: "a", label: "Arachide", rule_profile_version: "1", rule_status: "a_valider" },
+    { id: "m", label: "Mil", rule_profile_version: "1", rule_status: "a_valider" },
+  ] })));
+  const user = userEvent.setup();
+  render(<App />);
+  await user.click(await screen.findByLabelText("Mil"));
+  expect(screen.getByLabelText("Mil")).toBeChecked();
+});
+
 test("recherche de lieu : résultat choisi, puis liste vide sans erreur (FE-04)", async () => {
   const user = userEvent.setup();
   render(<App />);
-  await user.type(screen.getByLabelText("Rechercher un lieu"), "thies");
+  await user.type(screen.getByLabelText("Chercher un autre lieu"), "thies");
   await user.click(screen.getByRole("button", { name: "Rechercher" }));
-  await user.click(await screen.findByRole("button", { name: /Thiès, Thiès, Sénégal/ }));
+  await user.click(await screen.findByRole("button", { name: /^Thiès, Sénégal$/ }));
   expect(screen.getByTestId("selected-place")).toHaveTextContent("Thiès");
-  expect(screen.getByLabelText("Latitude")).toHaveValue(14.79);
 
-  await user.clear(screen.getByLabelText("Rechercher un lieu"));
-  await user.type(screen.getByLabelText("Rechercher un lieu"), "zzzz");
+  await user.type(screen.getByLabelText("Chercher un autre lieu"), "zzzz");
   await user.click(screen.getByRole("button", { name: "Rechercher" }));
   expect(await screen.findByText(/Aucun lieu trouvé/)).toBeInTheDocument();
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
 
-test("les coordonnées invalides bloquent l'analyse", async () => {
+test("un lieu fréquent se choisit en un clic", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await user.click(screen.getByRole("button", { name: "Thiès" }));
+  await waitFor(() => expect(screen.getByTestId("selected-place")).toHaveTextContent("Thiès"));
+});
+
+test("une durée invalide bloque l'analyse", async () => {
   const user = userEvent.setup();
   render(<App />);
   await waitFor(() => expect(screen.getByTestId("analyse-btn")).toBeEnabled());
-  await user.clear(screen.getByLabelText("Latitude"));
-  await user.type(screen.getByLabelText("Latitude"), "120");
+  await user.click(screen.getByText("Changer la période"));
+  await user.clear(screen.getByLabelText(/Nombre de jours/));
+  await user.type(screen.getByLabelText(/Nombre de jours/), "200");
   expect(screen.getByTestId("analyse-btn")).toBeDisabled();
 });
 
-test("le tableau de bord affiche les valeurs de l'API sans recalcul (I-05)", async () => {
-  const user = await analyse();
+test("la frise de pluie et les indicateurs viennent de l'API, sans recalcul (I-05)", async () => {
+  await analyse();
   await screen.findByTestId("result");
-  await user.click(screen.getByRole("button", { name: "Tableau de bord" }));
+  expect(await screen.findByRole("img", { name: /Pluie de chaque jour du/ })).toBeInTheDocument();
   const box = await screen.findByTestId("indicators");
   expect(box).toHaveTextContent("61.2 mm");
   expect(box).toHaveTextContent("12.7 mm");
-  expect(await screen.findAllByRole("img")).toHaveLength(3);
   expect(await screen.findByTestId("dashboard-source")).toHaveTextContent("Open-Meteo");
 });
 
-test("le tableau de bord gère l'erreur du fournisseur (FE-04)", async () => {
+test("les courbes gèrent l'erreur du fournisseur (FE-04)", async () => {
   server.use(http.get(`${API}/weather`, () => HttpResponse.json(errorBody("PROVIDER_TIMEOUT"), { status: 504 })));
-  const user = await analyse();
+  await analyse();
   await screen.findByTestId("result");
-  await user.click(screen.getByRole("button", { name: "Tableau de bord" }));
   expect(await screen.findByTestId("dashboard-weather-error")).toHaveTextContent("ne répond pas");
-});
-
-test("sans analyse, résultat et tableau de bord invitent à analyser", async () => {
-  const user = userEvent.setup();
-  render(<App />);
-  await user.click(screen.getByRole("button", { name: "Résultat" }));
-  expect(screen.getByText(/Lancez d'abord une analyse/)).toBeInTheDocument();
 });
