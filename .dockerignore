@@ -5,3 +5,5 @@
 **/reports
 **/*.egg-info
 infra/deploy
+ml/notebooks
+ml/data/raw

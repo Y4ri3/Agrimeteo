@@ -1,8 +1,8 @@
 # backend : API FastAPI (lot 3)
 
 Les 6 endpoints du contrat sont branchés sur une interface de fournisseurs (`app/providers/`), un contrôle
-qualité, un cache de fichiers et des indicateurs. Pour l'instant, seul le fournisseur `fixture` (données
-**factices**, sans réseau) existe : Open-Meteo et CSV viennent du lot 1. Le moteur de décision
+qualité, un cache de fichiers et des indicateurs. Fournisseurs : `open_meteo` (réel), `csv` (extrait réel hors ligne,
+`CSV_PATH`) et `fixture` (**factice**, défaut, sans réseau). Aucun test n'appelle Internet. Le moteur de décision
 (`app/services/engine.py`) et les profils de culture (`app/services/crops.py`) sont **provisoires** en
 attendant le module `ml` (lot 2) : sans seuil validé, le niveau est toujours « indéterminé ».
 

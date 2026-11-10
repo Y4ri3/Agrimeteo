@@ -6,6 +6,6 @@
 
 **Règles d'abord, ML à trancher.** Pas de ML dans le MVP. Un modèle exigerait une cible fiable (rendement, résultat de semis observé) ; sinon il n'a rien d'honnête à prédire. À confirmer avec M. Diop.
 
-**Fournisseur météo : Open-Meteo.** Sans clé, historique disponible. Pas encore branché : seul le fournisseur `fixture` existe (lot 1).
+**Fournisseur météo : Open-Meteo.** Sans clé, historique disponible. Branché (`backend/app/providers/open_meteo.py`) : `WEATHER_PROVIDER=open_meteo` ou `?source=open_meteo`. Le défaut reste `fixture` (hors ligne, pour les tests et la CI). Fournisseur `csv` : extrait réel de l'extraction du lot 1, pour la démonstration hors ligne (dates de 2025).
 
 **Ports du cahier.** Démonstration et développement : 3000. CI : 3100 (frontend) et 8100 (backend).

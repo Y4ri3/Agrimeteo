@@ -17,6 +17,8 @@ from app.core.errors import AppError
 from app.schemas.common import Health
 
 logging.basicConfig(level=config.LOG_LEVEL, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+# httpx journalise les URL (coordonnées exactes) : on ne garde que les valeurs arrondies (cahier 9.9).
+logging.getLogger("httpx").setLevel(logging.WARNING)
 log = logging.getLogger("agrimeteo")
 
 app = FastAPI(
