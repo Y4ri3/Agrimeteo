@@ -193,6 +193,8 @@ export interface components {
              * @enum {string}
              */
             rule_status: "a_valider" | "valide_par_source";
+            /** Zones */
+            zones?: string | null;
         };
         /** CropsResponse */
         CropsResponse: {

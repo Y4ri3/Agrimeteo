@@ -205,6 +205,17 @@
             ],
             "title": "Rule Status",
             "type": "string"
+          },
+          "zones": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zones"
           }
         },
         "required": [

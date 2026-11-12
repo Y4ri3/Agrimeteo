@@ -72,12 +72,18 @@ export function Curves({
           const dates = d.daily.map((r) => r.date);
           return (
             <>
-              <Chart title="Précipitations" unit="mm" dates={dates} series={[{ name: "Pluie", kind: "bar", values: d.daily.map((r) => r.precipitation_mm ?? null) }]} />
-              <Chart title="Températures" unit="°C" dates={dates} series={[
-                { name: "Tmax", kind: "line", values: d.daily.map((r) => r.tmax_c ?? null) },
-                { name: "Tmin", kind: "line", values: d.daily.map((r) => r.tmin_c ?? null) },
-              ]} />
-              <Chart title="Évapotranspiration de référence (ET0)" unit="mm" dates={dates} series={[{ name: "ET0", kind: "line", values: d.daily.map((r) => r.et0_mm ?? null) }]} />
+              <Chart title="Pluie de chaque jour" unit="mm" yLabel="Pluie (mm par jour)" dates={dates}
+                howToRead="Chaque barre est la pluie d'une journée. Plus la barre est haute, plus il a plu ce jour-là. Pas de barre : pas de pluie. Passez la souris sur une barre pour lire la valeur."
+                series={[{ name: "Pluie du jour", kind: "bar", values: d.daily.map((r) => r.precipitation_mm ?? null) }]} />
+              <Chart title="Températures de chaque jour" unit="°C" yLabel="Température (°C)" dates={dates}
+                howToRead="La courbe du haut est la température la plus chaude de la journée, celle du bas la plus fraîche. Plus les courbes montent, plus il fait chaud."
+                series={[
+                  { name: "Température maximale (journée)", kind: "line", values: d.daily.map((r) => r.tmax_c ?? null) },
+                  { name: "Température minimale (nuit)", kind: "line", values: d.daily.map((r) => r.tmin_c ?? null) },
+                ]} />
+              <Chart title="Eau que l'air pourrait évaporer" unit="mm" yLabel="Évaporation possible (mm par jour)" dates={dates}
+                howToRead="C'est l'évapotranspiration de référence (ET0) : la quantité d'eau que le soleil et le vent peuvent évaporer en un jour. Quand elle dépasse la pluie, les sols se dessèchent."
+                series={[{ name: "Évaporation possible (ET0)", kind: "line", values: d.daily.map((r) => r.et0_mm ?? null) }]} />
               <p className="muted" data-testid="dashboard-source">{d.source.attribution ?? `Source : ${d.source.id}`}</p>
             </>
           );

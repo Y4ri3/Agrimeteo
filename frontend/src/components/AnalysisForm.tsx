@@ -83,7 +83,7 @@ export function AnalysisForm({
               {data.crops.map((c) => (
                 <label key={c.id} className={`tile${selectedCrop === c.id ? " selected" : ""}`}>
                   <input type="radio" name="culture" value={c.id} checked={selectedCrop === c.id} onChange={() => setCropId(c.id)} />
-                  <span className="tile-name">{c.label}</span>
+                  <span className="tile-name">{c.label}{c.zones ? <small>{c.zones}</small> : null}</span>
                 </label>
               ))}
             </div>
@@ -163,8 +163,8 @@ export function AnalysisForm({
         {!windowValid && <p role="alert" className="alert">Le nombre de jours doit être compris entre 7 et 90.</p>}
       </fieldset>
 
-      <button data-testid="analyse-btn" type="submit" className="button big" disabled={!selectedCrop || !windowValid || busy}>
-        {busy ? "Analyse en cours…" : "Vérifier"}
+      <button data-testid="analyse-btn" type="submit" className="button big" disabled={!selectedCrop || !windowValid || busy || searching}>
+        {busy ? "Analyse en cours…" : searching ? "Recherche du lieu…" : "Vérifier"}
       </button>
       {busy && <p role="status" className="muted">Chargement des données météo…</p>}
       {error ? <p role="alert" className="alert" data-testid="error-message">{userMessage(error)}</p> : null}

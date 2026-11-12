@@ -36,6 +36,7 @@ class Crop(BaseModel):
     label: str
     rule_profile_version: str
     rule_status: Literal["a_valider", "valide_par_source"]
+    zones: str | None = None
 
 
 class CropsResponse(BaseModel):

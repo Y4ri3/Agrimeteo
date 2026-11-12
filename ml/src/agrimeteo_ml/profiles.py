@@ -32,6 +32,7 @@ class Profile:
     label: str
     version: str
     status: str
+    zones: str
     window_days: int
     criteria: tuple[Criterion, ...]
     limits: tuple[str, ...]
@@ -79,6 +80,7 @@ def load_profile(path: str | Path) -> Profile:
         label=data["label"],
         version=str(data["version"]),
         status=data["status"],
+        zones=str(data.get("zones") or ""),
         window_days=int((data.get("analysis") or {}).get("window_days", 30)),
         criteria=tuple(
             Criterion(

@@ -20,7 +20,9 @@ def profile(crop_id: str) -> Profile | None:
 
 
 def _crop(p: Profile) -> Crop:
-    return Crop(id=p.id, label=p.label, rule_profile_version=p.version, rule_status=p.status)
+    return Crop(
+        id=p.id, label=p.label, rule_profile_version=p.version, rule_status=p.status, zones=p.zones or None
+    )
 
 
 def all_crops() -> list[Crop]:

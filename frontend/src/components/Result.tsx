@@ -1,31 +1,19 @@
 import { getIndicators, getWeather, type Prediction, type PredictionRequest } from "../api";
+import { LEVELS, STATUS, frDate } from "../labels";
 import { useAsync } from "../useAsync";
+import { CriterionCard } from "./CriterionCard";
 import { Curves } from "./Curves";
 import { RainStrip } from "./RainStrip";
 
-// Quatre niveaux du contrat, dits en français simple.
-const LEVELS: Record<string, { title: string; tone: string }> = {
-  favorable: { title: "Oui, les conditions sont bonnes", tone: "oui" },
-  favorable_sous_reserve: { title: "Oui, sous réserve", tone: "reserve" },
-  peu_favorable: { title: "Non, pas maintenant", tone: "non" },
-  indetermine: { title: "On ne peut pas conclure", tone: "inconnu" },
-};
-const STATUS: Record<string, { word: string; icon: string }> = {
-  ok: { word: "Respecté", icon: "✓" },
-  vigilance: { word: "À surveiller", icon: "!" },
-  defavorable: { word: "Défavorable", icon: "✕" },
-  non_evaluable: { word: "Non évaluable", icon: "?" },
-};
 const CONFIDENCE: Record<string, string> = { faible: "faible", moyenne: "moyenne", elevee: "élevée" };
 const VARIABLES: Record<string, string> = {
-  precipitation_mm: "Précipitations",
+  precipitation_mm: "Pluie",
   tmax_c: "Température maximale",
   tmin_c: "Température minimale",
+  tmean_c: "Température moyenne",
   rh_mean_pct: "Humidité de l'air",
-  et0_mm: "Évapotranspiration (ET0)",
+  et0_mm: "Évaporation possible (ET0)",
 };
-
-const frDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
 /** Affiche le résultat tel que renvoyé par l'API : aucun calcul côté frontend (A-08, I-05). */
 export function Result({ request, result }: { request: PredictionRequest; result: Prediction }) {
@@ -39,6 +27,8 @@ export function Result({ request, result }: { request: PredictionRequest; result
   const level = LEVELS[fav.level] ?? { title: fav.level, tone: "inconnu" };
   const concerns = fav.criteria.filter((c) => c.status !== "ok");
   const q = result.data_quality;
+  const ind = indicators.status === "success" ? indicators.data.indicators : null;
+  const fact = (v: number | null | undefined, unit: string) => (v === null || v === undefined ? "n/d" : `${String(v).replace(".", ",")}${unit}`);
 
   return (
     <section className="result" data-testid="result" aria-labelledby="t-result">
@@ -66,6 +56,15 @@ export function Result({ request, result }: { request: PredictionRequest; result
       </div>
 
       <div className="strip-box">
+        <h3>Ce qui s'est passé sur la période</h3>
+        {ind && (
+          <dl className="facts big" data-testid="key-facts">
+            <div><dt>Pluie tombée</dt><dd>{fact(ind.rain_sum_mm[`${w.days}d`], " mm")}</dd></div>
+            <div><dt>Jours de pluie</dt><dd>{fact(ind.wet_days, "")}</dd></div>
+            <div><dt>Plus longue période sans pluie</dt><dd>{fact(ind.max_dry_spell_days, " jours")}</dd></div>
+            <div><dt>Jour le plus chaud</dt><dd>{fact(ind.tmax_max_c, " °C")}</dd></div>
+          </dl>
+        )}
         {weather.status === "success" && weather.data.daily.length > 0 ? (
           <>
             <RainStrip
@@ -73,12 +72,22 @@ export function Result({ request, result }: { request: PredictionRequest; result
               startLabel={frDate(w.start_date)}
               endLabel={frDate(w.end_date)}
               title={`Pluie de chaque jour du ${frDate(w.start_date)} au ${frDate(w.end_date)}`}
+              unitLabel="mm"
             />
-            <p className="caption">Pluie de chaque jour sur la période. Un jour hachuré n'a pas de donnée.</p>
+            <p className="caption">Chaque barre est la pluie d'un jour (en millimètres). Un jour hachuré n'a pas de donnée.</p>
           </>
         ) : weather.status === "loading" ? (
           <p role="status" className="muted">Chargement de la pluie…</p>
         ) : null}
+      </div>
+
+      <div className="why">
+        <h3>Pourquoi cette réponse ? Les repères, un par un</h3>
+        <p className="muted">
+          Pour chaque repère, la barre va du bon (vert) au défavorable (rouge). Le triangle montre la valeur mesurée
+          pour votre lieu ; les chiffres sous la barre sont les limites.
+        </p>
+        <ul className="criteria">{fav.criteria.map((c) => <CriterionCard key={c.id} c={c} />)}</ul>
       </div>
 
       <p className="confidence" data-testid="confidence">
@@ -103,23 +112,12 @@ export function Result({ request, result }: { request: PredictionRequest; result
         <ul>{result.limits.map((l) => <li key={l}>{l}</li>)}</ul>
       </div>
 
-      <details className="more">
-        <summary>Détail de chaque repère</summary>
-        <ul className="criteria">
-          {fav.criteria.map((c) => (
-            <li key={c.id}>
-              <span className={`tag s-${c.status}`}><span aria-hidden="true">{STATUS[c.status]?.icon}</span> {STATUS[c.status]?.word ?? c.status}</span> {c.explanation}
-            </li>
-          ))}
-        </ul>
-      </details>
-
       <details className="more" data-testid="block-quality">
         <summary>Qualité des données</summary>
         <p>{q.missing_days} jour(s) avec une donnée manquante ou rejetée.</p>
         <ul>
           {Object.entries(q.completeness_pct).map(([v, pct]) => (
-            <li key={v}>{VARIABLES[v] ?? v} : {pct} % de complétude</li>
+            <li key={v}>{VARIABLES[v] ?? v} : {pct} % de données disponibles</li>
           ))}
         </ul>
       </details>

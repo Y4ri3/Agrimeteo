@@ -1,12 +1,13 @@
 # ml : indicateurs et moteur de règles (lot 2)
 
-Pas de machine learning : aucune variable cible fiable (rendement, résultat de semis), voir `docs/decisions.md`.
+Pas de machine learning, c'est définitif : aucune variable cible fiable (rendement, résultat de semis), voir `docs/decisions.md`.
+Le moteur est un moteur de règles, vérifié par des scénarios et des bornes (P-01 à P-07), pas par un taux de réussite.
 
 ```text
-src/agrimeteo_ml/indicators.py   indicateurs du cahier §7.3 (fonctions pures, une valeur manquante n'est jamais 0)
+src/agrimeteo_ml/indicators.py   les 11 indicateurs du cahier §7.3 (fonctions pures, une valeur manquante n'est jamais 0)
 src/agrimeteo_ml/profiles.py     lecture et validation des profils YAML (P-06)
-src/agrimeteo_ml/engine.py       moteur : critères -> niveau, explications en français, confiance (P-01 à P-07)
-rules/*.yaml                     profils de culture : arachide, mil
+src/agrimeteo_ml/engine.py       moteur : critères -> niveau, explications en français, confiance
+rules/*.yaml                     profils de culture : tomate, riz, arachide, mil
 data/sample/                     extrait de données réelles pour la démonstration hors ligne
 ```
 
@@ -14,28 +15,36 @@ data/sample/                     extrait de données réelles pour la démonstra
 make setup test        # ou : make ci
 ```
 
+## Origine
+Les profils et les règles du moteur viennent du notebook définitif du lot 2 (`devoir_devops.ipynb`). Le moteur a été
+recoupé avec lui : sur 12 localités × 4 cultures au 15 septembre 2025, les 48 résultats sont identiques.
+
 ## Profils de culture
-Un critère = un indicateur, un sens (`lower_is_worse` ou `higher_is_worse`), deux seuils (`vigilance`, `unfavorable`),
-une source, et un caractère bloquant ou non. Une valeur « trop basse » est défavorable **sous** le seuil ; une valeur
-« trop haute » l'est **à partir** du seuil. Tout seuil exige une source (`make check`).
-`status: a_valider` plafonne le résultat à « favorable sous réserve » ; `valide_par_source` permet « favorable »
-et exige que tous les critères aient seuils et source.
+Un critère = un indicateur calculé sur une fenêtre (`window_days`), un sens (`lower_is_worse` ou `higher_is_worse`),
+un seuil de vigilance et/ou un seuil défavorable, une source, et un caractère bloquant ou non. Un seuil est « franchi »
+dès qu'il est atteint : valeur ≥ seuil pour un maximum, valeur ≤ seuil pour un minimum. Tout seuil exige une source
+(`make check`). `status: a_valider` plafonne le résultat à « favorable sous réserve » ; `valide_par_source` permet
+« favorable » et exige seuils et source pour tous les critères.
 
-## Sources des seuils
-| Critère | Seuils (vigilance / défavorable) | Source |
-|---|---|---|
-| Plus forte pluie sur 3 jours | 20 mm / 10 mm | Sivakumar (1988) : 20 mm sur 2-3 jours déclenchent le semis ; étude sur le semis du mil au Niger (HAL hal-00584850) : les agriculteurs sèment dès 10 mm en 2 jours |
-| Plus longue période sèche | 7 jours / 10 jours | Sivakumar (1988) : pas de pause sèche de 7 jours ou plus après le semis ; même étude Niger : 23 % des semis échouent après une pause de plus de 9 jours |
-| Température moyenne, chaleur (arachide) | 28 °C / 33 °C | [FAO, fiche arachide](https://www.fao.org/land-water/databases-and-software/crop-information/groundnut/en/) : optimum 22-28 °C, rendement en baisse au-delà de 33 °C |
-| Température moyenne, fraîcheur (arachide) | 22 °C / 18 °C | même fiche FAO : rendement en baisse en dessous de 18 °C |
+| Culture | Critères (vigilance / défavorable) |
+|---|---|
+| Arachide | jour le plus chaud (38 / 42 °C, bloquant) ; plus longue période sans pluie (10 / 20 jours, bloquant) ; pluie cumulée (60 mm ou moins) |
+| Mil | jour le plus chaud (40 / 45 °C, bloquant) ; plus longue période sans pluie (15 / 25 jours, bloquant) ; pluie cumulée (50 mm ou moins) |
+| Riz | jour le plus chaud (35 / 38 °C, bloquant) ; nuit la plus froide (18 / 15 °C, bloquant) ; pluie cumulée (150 mm ou moins) ; gel (1 jour, bloquant) |
+| Tomate | jour le plus chaud (35 / 40 °C, bloquant) ; nuit la plus froide (12 / 10 °C, bloquant) ; gel (1 jour, bloquant) ; bilan pluie moins ET0 (-150 mm ou moins) ; humidité (80 % ou plus) |
 
-Jour sec : moins de 1 mm de pluie (seuil de jour pluvieux des études sahéliennes).
+Toutes les fenêtres sont de 30 jours. Les sources sont celles du notebook (FAO EcoCrop, IRRI, FAO 56…) et sont écrites dans
+chaque fichier YAML. **Plusieurs sont des références générales, pas des citations précises** (par exemple
+« Tolérance du mil à la sécheresse ») : c'est la raison du statut `a_valider`.
 
-## Limites assumées (profils « à valider »)
-- La règle de Sivakumar décrit le **début de saison des pluies**, avec une pause sèche observée *après* l'épisode
-  pluvieux. L'application analyse une fenêtre **passée** : on utilise donc la plus forte pluie sur 3 jours et la plus
-  longue période sèche **de la fenêtre**. C'est une adaptation de l'équipe, d'où le statut `a_valider`.
-- Les seuils d'arachide et de mil sont identiques pour la pluie. Le mil n'a aucun critère de température : aucun seuil
-  sourcé n'a été retenu. Il n'y a pas de critère de gel (rare au Sénégal).
+## Différences assumées avec le notebook
+- Un jour manquant ne rend pas tout l'indicateur indéfini : les valeurs connues sont utilisées et le critère n'est
+  « indéterminé » que si la complétude des variables essentielles passe sous 90 % (le notebook met NaN dès qu'un jour manque).
+- La confiance tient compte de la résolution et du statut du profil, comme le demande le cahier (§7.4), en plus de la
+  complétude. Elle est donc « moyenne » au mieux avec des profils à valider ; le notebook allait jusqu'à « élevée ».
+- Le statut `a_valider` n'existe pas dans le notebook : il plafonne le niveau (P-07).
+
+## Limites
 - Pas d'humidité du sol modélisée : le bloc reste « non disponible ».
 - Pas d'interpolation des trous de température : un trou rend le critère non évaluable.
+- Les 12 localités du notebook ont une Tmin toujours au-dessus de 12 °C : les critères de gel ne se déclenchent jamais au Sénégal.

@@ -11,9 +11,13 @@ export const prediction = {
   analysis_window: { start_date: "2026-09-22", end_date: "2026-10-21", days: 30 },
   crop: { id: "c", label: "Culture C", rule_profile_version: "0.1.0", rule_status: "a_valider" },
   meteorological_favorability: {
-    level: "indetermine",
-    summary: "Résultat indéterminé : seuils à valider.",
-    criteria: [{ id: "gel", status: "non_evaluable", explanation: "Seuil non défini." }],
+    level: "favorable_sous_reserve",
+    summary: "Conditions compatibles avec le profil, sous réserve.",
+    criteria: [
+      { id: "chaleur", label: "Chaleur extrême", status: "vigilance", blocking: true, direction: "higher_is_worse", unit: "°C", window_days: 30, value: 38.5, vigilance: 38, unfavorable: 42, explanation: "Chaleur extrême sur 30 jours : 38,5 °C, ce qui atteint ou dépasse le seuil de vigilance (38 °C)." },
+      { id: "pluie", label: "Pluie cumulée", status: "ok", blocking: false, direction: "lower_is_worse", unit: "mm", window_days: 30, value: 120, vigilance: 60, unfavorable: null, explanation: "Pluie cumulée sur 30 jours : 120 mm, dans la limite acceptable pour ce profil." },
+      { id: "froid", label: "Fraîcheur", status: "non_evaluable", blocking: true, direction: "lower_is_worse", unit: "°C", window_days: 30, value: null, vigilance: null, unfavorable: null, explanation: "Fraîcheur sur 30 jours : seuil non défini pour ce profil (à valider)." },
+    ],
   },
   soil_moisture: { kind: "modelled_indicator", available: false, note: "Estimation de modèle, non mesurée." },
   agronomic_cultivability: { status: "non_evaluee", reason: "Aucune donnée de sol fiable." },
@@ -28,7 +32,7 @@ export const prediction = {
 export const errorBody = (code: string, message = "msg serveur") => ({ error: { code, message, details: null }, request_id: "req-err" });
 
 export const handlers = [
-  http.get(`${API}/crops`, () => HttpResponse.json({ crops: [{ id: "c", label: "Culture C", rule_profile_version: "0.1.0", rule_status: "a_valider" }] })),
+  http.get(`${API}/crops`, () => HttpResponse.json({ crops: [{ id: "c", label: "Culture C", rule_profile_version: "0.1.0", rule_status: "a_valider", zones: "Bassin arachidier" }] })),
   http.get(`${API}/geocode`, ({ request }) => {
     const q = (new URL(request.url).searchParams.get("q") ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     return HttpResponse.json({ results: q === "thies" ? [{ name: "Thiès", country: "Sénégal", admin1: "Thiès", latitude: 14.79, longitude: -16.93 }] : [] });

@@ -17,6 +17,14 @@ async function analyse() {
   return user;
 }
 
+test("l'accueil montre un exemple de réponse avec ses jauges", () => {
+  window.location.hash = "#/";
+  render(<App />);
+  expect(screen.getByText("À quoi ressemble une réponse")).toBeInTheDocument();
+  expect(screen.getAllByRole("img", { name: /Limites : à surveiller/ }).length).toBeGreaterThanOrEqual(3);
+  expect(screen.getByText("Quatre cultures")).toBeInTheDocument();
+});
+
 test("la page d'accueil dit à quoi sert l'outil et mène à l'application", () => {
   window.location.hash = "#/";
   render(<App />);
@@ -29,7 +37,7 @@ test("la page d'accueil dit à quoi sert l'outil et mène à l'application", () 
 
 test("parcours nominal : culture, lieu, verdict (FE-01)", async () => {
   await analyse();
-  expect(await screen.findByTestId("block-meteo")).toHaveTextContent("On ne peut pas conclure");
+  expect(await screen.findByTestId("block-meteo")).toHaveTextContent("Oui, sous réserve");
 });
 
 test("le résultat affiche ensemble les trois notions et les limites (FE-03)", async () => {
@@ -44,8 +52,26 @@ test("le résultat affiche ensemble les trois notions et les limites (FE-03)", a
 test("les repères à surveiller et le statut du profil sont écrits dans le verdict", async () => {
   await analyse();
   const verdict = await screen.findByTestId("block-meteo");
-  expect(verdict).toHaveTextContent("Non évaluable. Seuil non défini.");
+  expect(verdict).toHaveTextContent("À surveiller. Chaleur extrême sur 30 jours : 38,5 °C");
+  expect(verdict).toHaveTextContent("Non évaluable. Fraîcheur sur 30 jours : seuil non défini");
   expect(verdict).toHaveTextContent("encore à valider");
+});
+
+test("chaque repère a sa jauge : valeur, limites et explication", async () => {
+  await analyse();
+  const card = await screen.findByTestId("critere-chaleur");
+  expect(within(card).getByRole("img", { name: /Chaleur extrême : 38,5 °C\. Limites : à surveiller dès 38 °C, défavorable dès 42 °C/ })).toBeInTheDocument();
+  expect(card).toHaveTextContent("À surveiller");
+  expect(card).toHaveTextContent("Un résultat défavorable ici suffit pour répondre non");
+  expect(within(screen.getByTestId("critere-pluie")).getByRole("img", { name: /à surveiller à 60 mm ou moins/ })).toBeInTheDocument();
+  expect(screen.getByTestId("critere-froid")).toHaveTextContent("Non évaluable");
+  expect(within(screen.getByTestId("critere-froid")).queryByRole("img")).not.toBeInTheDocument(); // rien à dessiner sans seuil
+});
+
+test("les chiffres clés de la période viennent de l'API", async () => {
+  await analyse();
+  const facts = await screen.findByTestId("key-facts");
+  await waitFor(() => expect(facts).toHaveTextContent("61,2 mm"));
 });
 
 test("l'attribution, la licence et la date de récupération sont affichées (FE-06)", async () => {
@@ -95,9 +121,14 @@ test("la liste des cultures vide est expliquée (FE-04)", async () => {
   expect(screen.getByTestId("analyse-btn")).toBeDisabled();
 });
 
+test("chaque culture dit où elle est cultivée", async () => {
+  render(<App />);
+  expect(await screen.findByText("Bassin arachidier")).toBeInTheDocument();
+});
+
 test("on peut choisir l'autre culture", async () => {
   server.use(http.get(`${API}/crops`, () => HttpResponse.json({ crops: [
-    { id: "a", label: "Arachide", rule_profile_version: "1", rule_status: "a_valider" },
+    { id: "a", label: "Arachide", rule_profile_version: "1", rule_status: "a_valider", zones: "Bassin arachidier" },
     { id: "m", label: "Mil", rule_profile_version: "1", rule_status: "a_valider" },
   ] })));
   const user = userEvent.setup();

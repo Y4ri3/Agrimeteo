@@ -6,6 +6,7 @@ export function RainStrip({
   markIndex,
   markLabel,
   title,
+  unitLabel,
 }: {
   values: (number | null)[];
   startLabel: string;
@@ -13,6 +14,7 @@ export function RainStrip({
   markIndex?: number;
   markLabel?: string;
   title: string;
+  unitLabel?: string;
 }) {
   const W = 720, H = 150, T = 26, B = 22;
   const max = Math.max(1, ...values.filter((v): v is number => v !== null));
@@ -42,6 +44,9 @@ export function RainStrip({
               {markLabel}
             </text>
           </>
+        )}
+        {unitLabel && (
+          <text x={W} y={T - 8} textAnchor="end" className="strip-axis">{`jour le plus pluvieux : ${String(max).replace(".", ",")} ${unitLabel}`}</text>
         )}
         <text x={0} y={H - 6} className="strip-axis">{startLabel}</text>
         <text x={W} y={H - 6} textAnchor="end" className="strip-axis">{endLabel}</text>

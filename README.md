@@ -20,6 +20,6 @@ cd frontend && npm ci && npm run dev                                      # UI :
 `make ci` lance tous les contrôles (sans Docker). Sous Windows sans `make` : `sh infra/scripts/deploy-local.sh` depuis Git Bash.
 
 ## État
-Trois fournisseurs : `open_meteo` (données réelles, `WEATHER_PROVIDER=open_meteo`), `csv` (extrait réel hors ligne) et `fixture` (factice, défaut des tests et de la CI). Le moteur de règles (`ml/`) évalue l'arachide et le mil avec des seuils sourcés mais encore « à valider » (`ml/README.md`) : le résultat plafonne à « favorable sous réserve ». La CI GitHub Actions n'a pas encore tourné sur GitHub.
+Trois fournisseurs : `open_meteo` (données réelles, `WEATHER_PROVIDER=open_meteo`), `csv` (extrait réel hors ligne) et `fixture` (factice, défaut des tests et de la CI). Le moteur de règles (`ml/`) évalue la tomate, le riz, l'arachide et le mil avec les profils du lot 2, encore « à valider » (`ml/README.md`) : le résultat plafonne à « favorable sous réserve ». Pas de machine learning. La CI GitHub Actions n'a pas encore tourné sur GitHub.
 
 Voir aussi : `docs/exploitation.md` (pipeline, déploiement, retour arrière), `docs/decisions.md`, `docs/migration.md`, `CONTRIBUTING.md`.
