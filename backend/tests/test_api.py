@@ -14,7 +14,7 @@ PRED = {"location": LOC, "crop_id": "test_a", "reference_date": REF}
 def test_health(client):  # A-01
     r = client.get("/health")
     assert r.status_code == 200
-    assert r.json()["status"] == "ok"
+    assert r.json()["status"] == "ko"  # DÉMO J-02 : test volontairement cassé, ne pas fusionner
 
 
 # ---------- /geocode et /crops (A-07) ----------
