@@ -11,5 +11,8 @@ export const STATUS: Record<string, { word: string; icon: string }> = {
   defavorable: { word: "Défavorable", icon: "✕" },
   non_evaluable: { word: "Non évaluable", icon: "?" },
 };
+// Courte : « 7 août ».
+export const frDay = (iso: string) =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
 export const frDate = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
