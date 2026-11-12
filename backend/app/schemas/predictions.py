@@ -36,6 +36,7 @@ class Crop(BaseModel):
     label: str
     rule_profile_version: str
     rule_status: Literal["a_valider", "valide_par_source"]
+    zones: str | None = None
 
 
 class CropsResponse(BaseModel):
@@ -43,9 +44,19 @@ class CropsResponse(BaseModel):
 
 
 class CriterionResult(BaseModel):
+    """Un critère du profil : son verdict, sa phrase explicative et de quoi dessiner une jauge."""
+
     id: str
+    label: str | None = None
     status: CriterionStatus
     explanation: str
+    blocking: bool = False
+    direction: Literal["lower_is_worse", "higher_is_worse"] | None = None
+    unit: str | None = None
+    window_days: int | None = None
+    value: float | None = None
+    vigilance: float | None = None
+    unfavorable: float | None = None
 
 
 class MeteoFavorability(BaseModel):

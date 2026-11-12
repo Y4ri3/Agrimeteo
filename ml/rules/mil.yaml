@@ -1,0 +1,40 @@
+# Profil Mil : seuils de travail du notebook du lot 2 (devoir_devops.ipynb), repris tels quels.
+# Statut a_valider : plusieurs sources sont générales (FAO, IRRI) et non des références précises ; le niveau
+# ne dépasse donc pas « favorable sous réserve ». Passer à valide_par_source une fois les sources précisées.
+id: mil
+label: Mil
+version: 0.1.0
+status: a_valider            # a_valider | valide_par_source
+analysis:
+  window_days: 30
+zones: "Bassin arachidier, Ferlo et Sénégal oriental"
+limits:
+  - "Seuils de travail issus de références agronomiques générales (FAO, IRRI) : à valider ; zones visées : Bassin arachidier, Ferlo et Sénégal oriental."
+criteria:
+  - id: chaleur
+    label: Chaleur extrême (jour le plus chaud)
+    indicator: tmax_max
+    window_days: 30
+    unit: "°C"
+    direction: higher_is_worse
+    blocking: true
+    thresholds: { vigilance: 40, unfavorable: 45 }
+    source: "FAO EcoCrop, culture tolérante à la chaleur"
+  - id: secheresse
+    label: Plus longue période sans pluie
+    indicator: max_dry_spell
+    window_days: 30
+    unit: "jours"
+    direction: higher_is_worse
+    blocking: true
+    thresholds: { vigilance: 15, unfavorable: 25 }
+    source: "Tolérance du mil à la sécheresse"
+  - id: pluie_cumulee
+    label: Pluie cumulée
+    indicator: rain_sum
+    window_days: 30
+    unit: "mm"
+    direction: lower_is_worse
+    blocking: false
+    thresholds: { vigilance: 50, unfavorable: null }
+    source: "Besoins en eau du mil pluvial"

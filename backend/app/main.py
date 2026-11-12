@@ -16,12 +16,15 @@ from app.core import config
 from app.core.errors import AppError
 from app.schemas.common import Health
 
+logging.basicConfig(level=config.LOG_LEVEL, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+# httpx journalise les URL (coordonnées exactes) : on ne garde que les valeurs arrondies (cahier 9.9).
+logging.getLogger("httpx").setLevel(logging.WARNING)
 log = logging.getLogger("agrimeteo")
 
 app = FastAPI(
     title="AgriMétéo API",
     version=__version__,
-    description="Contrat d'API d'AgriMétéo (v1). Squelette : réponses factices.",
+    description="Contrat d'API d'AgriMétéo (v1).",
 )
 
 if config.CORS_ALLOWED_ORIGINS:
@@ -60,7 +63,7 @@ async def validation_handler(request: Request, exc: RequestValidationError):
         {"field": ".".join(str(p) for p in e["loc"] if p not in ("query", "body")), "issue": e["msg"]}
         for e in exc.errors()
     ]
-    return _error(request, 422, "VALIDATION_ERROR", "Vérifiez les valeurs saisies.", details)
+    return _error(request, 422, "VALIDATION_ERROR", "Vérifiez les coordonnées et les dates saisies.", details)
 
 
 @app.exception_handler(Exception)

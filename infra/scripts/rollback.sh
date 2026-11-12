@@ -15,6 +15,6 @@ for SERVICE in backend frontend; do
 done
 
 IMAGE_TAG="$PREVIOUS" docker compose up -d --no-build --wait --wait-timeout "$TIMEOUT"
-sh infra/scripts/smoke-test.sh "http://localhost:${PORT:-8080}"
+sh infra/scripts/smoke-test.sh "http://localhost:${PORT:-3000}"
 cp "$STATE/previous.tag" "$STATE/current.tag"
 echo "Retour arrière réussi : $PREVIOUS"

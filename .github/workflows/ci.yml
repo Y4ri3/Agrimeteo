@@ -2,6 +2,7 @@ name: CI
 on:
   push: { branches: [main] }
   pull_request:
+  workflow_dispatch:   # relancer un déploiement à la main depuis l'onglet Actions
 concurrency:
   group: ci-${{ github.ref }}
   # Sur main, un nouveau push n'interrompt jamais un déploiement en cours.
@@ -16,12 +17,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: pip install pyyaml
-      - run: |
-          python scripts/check_env_example.py
-          python scripts/check_imports.py
-          python scripts/check_rules_profiles.py
-          python scripts/check_secrets.py
+      - run: pip install ./ml
+      - run: python scripts/check.py
 
   backend:
     runs-on: ubuntu-latest
@@ -57,6 +54,7 @@ jobs:
         if: always()
         with: { name: frontend-reports, path: frontend/reports/ }
 
+  # Construit les images, contrôle (non root, sans secret), lance la pile sur les ports 3100/8100, puis Playwright.
   e2e:
     needs: [checks, backend, ml, frontend]
     runs-on: ubuntu-latest
@@ -67,44 +65,47 @@ jobs:
         if: always()
         with: { name: e2e-reports, path: e2e/reports/ }
 
-  # Rejoue déploiement, échec et retour arrière sur le runner (C-06, C-07).
-  deploy-check:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  # Déploiement sur le serveur (J-04) : main seulement, et seulement si tout est vert. Copie le code par SSH, puis
+  # lance deploy-local.sh sur le serveur : build, démarrage, smoke test, retour arrière automatique en cas d'échec.
+  # Le nginx du serveur (voir infra/nginx/) publie le site ; les secrets se règlent dans GitHub (docs/exploitation.md).
+  deploy:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: e2e
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_PATH: /opt/Agrimeteo
+      DEPLOY_URL: ${{ vars.DEPLOY_URL || 'https://devops.yokkutelabs.com' }}
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_PORT: ${{ secrets.VPS_PORT || '22' }}
+      VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+      VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
     steps:
       - uses: actions/checkout@v4
-      - run: sh infra/scripts/verify-deploy.sh
-
-  publish:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: deploy-check
-    runs-on: ubuntu-latest
-    permissions: { contents: read, packages: write }
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
-        with: { registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}" }
-      - name: Construire et pousser les images (tag = commit)
+      - name: Vérifier les secrets du serveur
         run: |
-          cp .env.example .env
-          REPO="ghcr.io/${GITHUB_REPOSITORY,,}"
-          export IMAGE_TAG="${GITHUB_SHA}"
-          docker compose build
-          for s in backend frontend; do
-            docker tag "agrimeteo-$s:${IMAGE_TAG}" "$REPO/$s:${IMAGE_TAG}"
-            docker push "$REPO/$s:${IMAGE_TAG}"
+          for name in VPS_HOST VPS_USER VPS_SSH_KEY VPS_KNOWN_HOSTS; do
+            eval "value=\${$name:-}"
+            [ -n "$value" ] || { echo "::error::Secret GitHub manquant : $name (voir docs/exploitation.md)"; exit 1; }
           done
-
-  # Actif seulement si la variable de dépôt DEPLOY_SELF_HOSTED vaut true et qu'un runner auto-hébergé existe (ADR-005).
-  # L'état reste hors de l'espace de travail : actions/checkout supprime les fichiers ignorés par Git.
-  deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_SELF_HOSTED == 'true'
-    needs: publish
-    runs-on: self-hosted
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-      - run: sh infra/scripts/deploy-local.sh
-        env:
-          DEPLOY_STATE_DIR: ${{ runner.tool_cache }}/agrimeteo-deploy
+      - name: Préparer SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Copier le code sur le serveur
+        run: |
+          rsync -az --delete \
+            --exclude '.git' --exclude '.github' --exclude '.env' --exclude 'infra/deploy' \
+            --exclude 'node_modules' --exclude '.venv' --exclude 'reports' \
+            -e "ssh -i ~/.ssh/deploy_key -p $VPS_PORT" ./ "$VPS_USER@$VPS_HOST:$DEPLOY_PATH/"
+      - name: Déployer (build, démarrage, smoke test, retour arrière si échec)
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+            "cd $DEPLOY_PATH && IMAGE_TAG='${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}' sh infra/scripts/deploy-local.sh"
+      - name: Vérifier le site public
+        run: |
+          curl -fsS --retry 6 --retry-delay 5 --retry-all-errors "$DEPLOY_URL/" >/dev/null
+          curl -fsS --retry 6 --retry-delay 5 --retry-all-errors "$DEPLOY_URL/api/v1/crops" | grep -q '"crops"'
+          echo "Site en ligne : $DEPLOY_URL"

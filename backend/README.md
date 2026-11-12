@@ -1,14 +1,20 @@
 # backend : API FastAPI (lot 3)
 
-État : **squelette**. Les 6 endpoints du contrat existent et répondent avec des données factices
-(`app/services/stub.py`). Le travail du lot 3 est de les brancher sur les fournisseurs (lot 1)
-et sur le moteur (lot 2) **sans changer le contrat** (sinon : voir `docs/decisions/` et prévenir le lot 6).
+Les 6 endpoints du contrat sont branchés sur une interface de fournisseurs (`app/providers/`), un contrôle
+qualité, un cache de fichiers et des indicateurs. Fournisseurs : `open_meteo` (réel), `csv` (extrait réel hors ligne,
+`CSV_PATH`) et `fixture` (**factice**, défaut, sans réseau). Aucun test n'appelle Internet. Les indicateurs, les profils de culture (`RULES_DIR`) et la décision viennent du
+module `ml` (lot 2) : `app/services/engine.py` et `crops.py` ne font que traduire ses résultats pour l'API.
 
 ```bash
 make setup          # installe ml et backend en mode éditable
-make test           # tests + rapports dans reports/
+make test           # tests + rapports dans reports/ (aucun accès réseau)
 uvicorn app.main:app --reload     # http://localhost:8000/docs
 make openapi        # régénère docs/api/openapi.json (à committer si le contrat change)
 ```
+
+Brancher un fournisseur (lot 1) : implémenter `WeatherProvider` (`providers/base.py`) et l'ajouter à
+`providers.REGISTRY` ; il devient disponible via `WEATHER_PROVIDER` ou `?source=`. Les pannes se signalent en
+levant `ProviderUnavailable` (502), `ProviderRateLimited` (503) ou `ProviderTimeout` (504).
+
 Règle : toute modification de route ou de schéma = `make openapi` + commit du fichier.
 `scripts/check_openapi.py` fait échouer la CI si les deux divergent (critère A-02).

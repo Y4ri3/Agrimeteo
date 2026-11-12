@@ -1,0 +1,58 @@
+# Profil Tomate : seuils de travail du notebook du lot 2 (devoir_devops.ipynb), repris tels quels.
+# Statut a_valider : plusieurs sources sont générales (FAO, IRRI) et non des références précises ; le niveau
+# ne dépasse donc pas « favorable sous réserve ». Passer à valide_par_source une fois les sources précisées.
+id: tomate
+label: Tomate
+version: 0.1.0
+status: a_valider            # a_valider | valide_par_source
+analysis:
+  window_days: 30
+zones: "Maraîchage irrigué, Niayes et vallée du fleuve"
+limits:
+  - "Seuils de travail issus de références agronomiques générales (FAO, IRRI) : à valider ; zones visées : Maraîchage irrigué, Niayes et vallée du fleuve."
+criteria:
+  - id: chaleur
+    label: Chaleur extrême (jour le plus chaud)
+    indicator: tmax_max
+    window_days: 30
+    unit: "°C"
+    direction: higher_is_worse
+    blocking: true
+    thresholds: { vigilance: 35, unfavorable: 40 }
+    source: "FAO EcoCrop et littérature sur la nouaison"
+  - id: froid
+    label: Fraîcheur (nuit la plus froide)
+    indicator: tmin_min
+    window_days: 30
+    unit: "°C"
+    direction: lower_is_worse
+    blocking: true
+    thresholds: { vigilance: 12, unfavorable: 10 }
+    source: "FAO EcoCrop"
+  - id: gel
+    label: Jours de gel
+    indicator: frost_days
+    window_days: 30
+    unit: "jours"
+    direction: higher_is_worse
+    blocking: true
+    thresholds: { vigilance: null, unfavorable: 1 }
+    source: "Sensibilité de la tomate au gel"
+  - id: bilan_pluie_et0
+    label: Bilan pluie moins évaporation
+    indicator: water_balance
+    window_days: 30
+    unit: "mm"
+    direction: lower_is_worse
+    blocking: false
+    thresholds: { vigilance: -150, unfavorable: null }
+    source: "FAO 56, logique ET0 comme demande en eau ; culture irriguée"
+  - id: humidite
+    label: Humidité de l'air
+    indicator: rh_mean
+    window_days: 30
+    unit: "%"
+    direction: higher_is_worse
+    blocking: false
+    thresholds: { vigilance: 80, unfavorable: null }
+    source: "Risque de maladies foliaires en air humide"

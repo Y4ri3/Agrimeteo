@@ -11,8 +11,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Crops */
-        get: operations["crops_api_v1_crops_get"];
+        /** List Crops */
+        get: operations["list_crops_api_v1_crops_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -146,17 +146,39 @@ export interface components {
              */
             level: "faible" | "moyenne" | "elevee";
         };
-        /** CriterionResult */
+        /**
+         * CriterionResult
+         * @description Un critère du profil : son verdict, sa phrase explicative et de quoi dessiner une jauge.
+         */
         CriterionResult: {
+            /**
+             * Blocking
+             * @default false
+             */
+            blocking: boolean;
+            /** Direction */
+            direction?: ("lower_is_worse" | "higher_is_worse") | null;
             /** Explanation */
             explanation: string;
             /** Id */
             id: string;
+            /** Label */
+            label?: string | null;
             /**
              * Status
              * @enum {string}
              */
             status: "ok" | "vigilance" | "defavorable" | "non_evaluable";
+            /** Unfavorable */
+            unfavorable?: number | null;
+            /** Unit */
+            unit?: string | null;
+            /** Value */
+            value?: number | null;
+            /** Vigilance */
+            vigilance?: number | null;
+            /** Window Days */
+            window_days?: number | null;
         };
         /** Crop */
         Crop: {
@@ -171,6 +193,8 @@ export interface components {
              * @enum {string}
              */
             rule_status: "a_valider" | "valide_par_source";
+            /** Zones */
+            zones?: string | null;
         };
         /** CropsResponse */
         CropsResponse: {
@@ -192,6 +216,8 @@ export interface components {
             rh_mean_pct?: number | null;
             /** Tmax C */
             tmax_c?: number | null;
+            /** Tmean C */
+            tmean_c?: number | null;
             /** Tmin C */
             tmin_c?: number | null;
         };
@@ -255,16 +281,37 @@ export interface components {
             /** Version */
             version: string;
         };
-        /** Indicators */
+        /**
+         * Indicators
+         * @description Indicateurs du cahier §7.3, calculés par le module ml. null = non calculable (jamais 0).
+         */
         Indicators: {
+            /** Diurnal Range C */
+            diurnal_range_c?: number | null;
+            /** Et0 Sum Mm */
+            et0_sum_mm?: number | null;
             /** Frost Days */
-            frost_days: number;
+            frost_days?: number | null;
+            /** Max Dry Spell Days */
+            max_dry_spell_days?: number | null;
+            /** Rain Max 3D Mm */
+            rain_max_3d_mm?: number | null;
             /** Rain Sum Mm */
             rain_sum_mm: {
                 [key: string]: number | null;
             };
+            /** Rh Mean Pct */
+            rh_mean_pct?: number | null;
+            /** Tmax Max C */
+            tmax_max_c?: number | null;
+            /** Tmean C */
+            tmean_c?: number | null;
+            /** Tmin Min C */
+            tmin_min_c?: number | null;
             /** Water Balance Mm */
             water_balance_mm: number | null;
+            /** Wet Days */
+            wet_days?: number | null;
         };
         /** IndicatorsResponse */
         IndicatorsResponse: {
@@ -384,6 +431,10 @@ export interface components {
             attribution?: string | null;
             /** Id */
             id: string;
+            /** License */
+            license?: string | null;
+            /** Retrieved At */
+            retrieved_at?: string | null;
             /** Spatial Resolution Note */
             spatial_resolution_note?: string | null;
         };
@@ -411,7 +462,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    crops_api_v1_crops_get: {
+    list_crops_api_v1_crops_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -446,6 +497,7 @@ export interface operations {
                 q: string;
                 limit?: number;
                 language?: string;
+                source?: string | null;
             };
             header?: never;
             path?: never;
