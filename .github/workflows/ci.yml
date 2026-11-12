@@ -73,7 +73,7 @@ jobs:
     needs: e2e
     runs-on: ubuntu-latest
     env:
-      DEPLOY_PATH: /opt/agrimeteo
+      DEPLOY_PATH: /opt/Agrimeteo
       DEPLOY_URL: ${{ vars.DEPLOY_URL || 'https://devops.yokkutelabs.com' }}
       VPS_HOST: ${{ secrets.VPS_HOST }}
       VPS_USER: ${{ secrets.VPS_USER }}

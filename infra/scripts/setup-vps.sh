@@ -5,7 +5,7 @@
 # Prépare le dossier de déploiement, le fichier .env et le site nginx. Peut être relancé sans risque.
 set -eu
 DOMAIN="${DOMAIN:-devops.yokkutelabs.com}"
-DEPLOY_PATH="${DEPLOY_PATH:-/opt/agrimeteo}"
+DEPLOY_PATH="${DEPLOY_PATH:-/opt/Agrimeteo}"
 DEPLOY_USER="${DEPLOY_USER:-${SUDO_USER:-}}"
 HERE="$(cd "$(dirname "$0")/../.." && pwd)"
 
