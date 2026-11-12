@@ -15,7 +15,8 @@ services:
   frontend:
     image: agrimeteo-frontend:${IMAGE_TAG:-local}
     build: { context: ./frontend }
-    ports: ["${FRONTEND_PORT:-3000}:8080"]
+    # Écoute seulement sur la machine (127.0.0.1) : sur un serveur, le nginx global fait le lien avec Internet.
+    ports: ["${FRONTEND_BIND:-127.0.0.1}:${FRONTEND_PORT:-3000}:8080"]
     depends_on: { backend: { condition: service_healthy } }
     restart: unless-stopped
 volumes:

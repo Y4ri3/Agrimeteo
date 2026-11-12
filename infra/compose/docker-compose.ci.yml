@@ -3,7 +3,7 @@
 services:
   backend:
     environment: { WEATHER_PROVIDER: fixture }
-    ports: ["8100:8000"]
+    ports: ["127.0.0.1:8100:8000"]
   e2e:
     build: { context: ./e2e }
     environment: { E2E_BASE_URL: "http://frontend:8080" }
