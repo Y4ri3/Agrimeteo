@@ -65,8 +65,8 @@ jobs:
         if: always()
         with: { name: e2e-reports, path: e2e/reports/ }
 
-  # Déploiement sur le serveur (J-04) : main seulement, et seulement si tout est vert. Copie le code par SSH, puis
-  # lance deploy-local.sh sur le serveur : build, démarrage, smoke test, retour arrière automatique en cas d'échec.
+  # Déploiement sur le serveur (J-04) : main seulement, et seulement si tout est vert. Met à jour le dossier du serveur
+  # (git), puis lance deploy-local.sh là-bas : build, démarrage, smoke test, retour arrière automatique en cas d'échec.
   # Le nginx du serveur (voir infra/nginx/) publie le site ; les secrets se règlent dans GitHub (docs/exploitation.md).
   deploy:
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
@@ -94,16 +94,14 @@ jobs:
           printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
-      - name: Copier le code sur le serveur
+      - name: Mettre le code à jour sur le serveur (avec git, rien à installer)
         run: |
-          rsync -az --delete \
-            --exclude '.git' --exclude '.github' --exclude '.env' --exclude 'infra/deploy' \
-            --exclude 'node_modules' --exclude '.venv' --exclude 'reports' \
-            -e "ssh -i ~/.ssh/deploy_key -p $VPS_PORT" ./ "$VPS_USER@$VPS_HOST:$DEPLOY_PATH/"
+          ssh -i ~/.ssh/deploy_key -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+            "cd $DEPLOY_PATH && git fetch --quiet https://github.com/$GITHUB_REPOSITORY.git main && git reset --hard $GITHUB_SHA"
       - name: Déployer (build, démarrage, smoke test, retour arrière si échec)
         run: |
           ssh -i ~/.ssh/deploy_key -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
-            "cd $DEPLOY_PATH && IMAGE_TAG='${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}' sh infra/scripts/deploy-local.sh"
+            "cd $DEPLOY_PATH && { [ -f .env ] || { echo '.env absent du serveur : voir docs/exploitation.md' >&2; exit 1; }; } && IMAGE_TAG='${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}' sh infra/scripts/deploy-local.sh"
       - name: Vérifier le site public
         run: |
           curl -fsS --retry 6 --retry-delay 5 --retry-all-errors "$DEPLOY_URL/" >/dev/null

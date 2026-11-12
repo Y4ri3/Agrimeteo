@@ -2,7 +2,7 @@
 # À lancer UNE FOIS sur le serveur, avec sudo, depuis une copie du dépôt :
 #   git clone https://github.com/Y4ri3/Agrimeteo.git && cd Agrimeteo
 #   DEPLOY_USER=<utilisateur> sudo -E sh infra/scripts/setup-vps.sh
-# Prépare le dossier de déploiement, le fichier .env et le site nginx. Peut être relancé sans risque.
+# Prépare le dossier de déploiement (clone git), le fichier .env et le site nginx. Peut être relancé sans risque.
 set -eu
 DOMAIN="${DOMAIN:-devops.yokkutelabs.com}"
 DEPLOY_PATH="${DEPLOY_PATH:-/opt/Agrimeteo}"
@@ -14,15 +14,17 @@ HERE="$(cd "$(dirname "$0")/../.." && pwd)"
 id "$DEPLOY_USER" >/dev/null 2>&1 || { echo "Utilisateur inconnu : $DEPLOY_USER" >&2; exit 1; }
 
 MISSING=""
-for cmd in docker nginx rsync; do command -v "$cmd" >/dev/null 2>&1 || MISSING="$MISSING $cmd"; done
+for cmd in docker nginx git; do command -v "$cmd" >/dev/null 2>&1 || MISSING="$MISSING $cmd"; done
 docker compose version >/dev/null 2>&1 || MISSING="$MISSING docker-compose-v2"
 [ -z "$MISSING" ] || { echo "À installer d'abord :$MISSING" >&2; exit 1; }
 id -nG "$DEPLOY_USER" | tr ' ' '\n' | grep -qx docker \
   || echo "ATTENTION : $DEPLOY_USER n'est pas dans le groupe docker (sudo usermod -aG docker $DEPLOY_USER, puis reconnexion)."
 
 # 1. Dossier de déploiement : le code y est copié par la CI ; .env et infra/deploy (versions) y restent.
-mkdir -p "$DEPLOY_PATH"
-chown "$DEPLOY_USER" "$DEPLOY_PATH"
+# Le dossier est un clone git que la CI met à jour (git reset) : il appartient à l'utilisateur de déploiement.
+REPO_URL="${REPO_URL:-https://github.com/Y4ri3/Agrimeteo.git}"
+[ -d "$DEPLOY_PATH/.git" ] || git clone --quiet "$REPO_URL" "$DEPLOY_PATH"
+chown -R "$DEPLOY_USER" "$DEPLOY_PATH"
 if [ -f "$DEPLOY_PATH/.env" ]; then
   echo ".env déjà présent, non modifié : $DEPLOY_PATH/.env"
 else
