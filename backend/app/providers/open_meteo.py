@@ -21,6 +21,7 @@ DAILY_VARIABLES = {
     "precipitation_sum": "precipitation_mm",
     "temperature_2m_min": "tmin_c",
     "temperature_2m_max": "tmax_c",
+    "temperature_2m_mean": "tmean_c",
     "relative_humidity_2m_mean": "rh_mean_pct",
     "et0_fao_evapotranspiration": "et0_mm",
 }

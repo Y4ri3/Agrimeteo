@@ -1,0 +1,49 @@
+# Profil Riz : seuils de travail du notebook du lot 2 (devoir_devops.ipynb), repris tels quels.
+# Statut a_valider : plusieurs sources sont générales (FAO, IRRI) et non des références précises ; le niveau
+# ne dépasse donc pas « favorable sous réserve ». Passer à valide_par_source une fois les sources précisées.
+id: riz
+label: Riz
+version: 0.1.0
+status: a_valider            # a_valider | valide_par_source
+analysis:
+  window_days: 30
+zones: "Vallée du fleuve et Casamance"
+limits:
+  - "Seuils de travail issus de références agronomiques générales (FAO, IRRI) : à valider ; zones visées : Vallée du fleuve et Casamance."
+criteria:
+  - id: chaleur
+    label: Chaleur extrême (jour le plus chaud)
+    indicator: tmax_max
+    window_days: 30
+    unit: "°C"
+    direction: higher_is_worse
+    blocking: true
+    thresholds: { vigilance: 35, unfavorable: 38 }
+    source: "IRRI, stérilité des épillets à la floraison"
+  - id: froid
+    label: Fraîcheur (nuit la plus froide)
+    indicator: tmin_min
+    window_days: 30
+    unit: "°C"
+    direction: lower_is_worse
+    blocking: true
+    thresholds: { vigilance: 18, unfavorable: 15 }
+    source: "IRRI, sensibilité au froid"
+  - id: pluie_cumulee
+    label: Pluie cumulée
+    indicator: rain_sum
+    window_days: 30
+    unit: "mm"
+    direction: lower_is_worse
+    blocking: false
+    thresholds: { vigilance: 150, unfavorable: null }
+    source: "Besoins en eau du riz pluvial, FAO"
+  - id: gel
+    label: Jours de gel
+    indicator: frost_days
+    window_days: 30
+    unit: "jours"
+    direction: higher_is_worse
+    blocking: true
+    thresholds: { vigilance: null, unfavorable: 1 }
+    source: "Sensibilité du riz au froid extrême"

@@ -1,27 +1,40 @@
-# Profil Mil : critères pluviométriques de semis uniquement (aucun seuil thermique sourcé n'a été retenu).
+# Profil Mil : seuils de travail du notebook du lot 2 (devoir_devops.ipynb), repris tels quels.
+# Statut a_valider : plusieurs sources sont générales (FAO, IRRI) et non des références précises ; le niveau
+# ne dépasse donc pas « favorable sous réserve ». Passer à valide_par_source une fois les sources précisées.
 id: mil
 label: Mil
 version: 0.1.0
-status: a_valider
+status: a_valider            # a_valider | valide_par_source
 analysis:
   window_days: 30
+zones: "Bassin arachidier, Ferlo et Sénégal oriental"
 limits:
-  - "Seuils tirés d'études du Sahel (début de saison des pluies, mil au Niger) ; ils restent à valider."
-  - "Aucun critère de température pour le mil : aucun seuil sourcé n'a été retenu."
+  - "Seuils de travail issus de références agronomiques générales (FAO, IRRI) : à valider ; zones visées : Bassin arachidier, Ferlo et Sénégal oriental."
 criteria:
-  - id: pluie_declenchement
-    label: Plus forte pluie sur 3 jours
-    indicator: rain_max_3d_mm
-    unit: mm
-    direction: lower_is_worse
-    blocking: true
-    thresholds: { vigilance: 20, unfavorable: 10 }
-    source: "Sivakumar (1988) : 20 mm sur 2-3 jours déclenchent le semis ; étude « The onset of the rainy season and farmers' sowing strategy for pearl millet cultivation in Southwest Niger » (HAL hal-00584850) : semis du mil dès 10 mm en 2 jours"
-  - id: secheresse
-    label: Plus longue période sèche
-    indicator: max_dry_spell_days
-    unit: jours
+  - id: chaleur
+    label: Chaleur extrême (jour le plus chaud)
+    indicator: tmax_max
+    window_days: 30
+    unit: "°C"
     direction: higher_is_worse
     blocking: true
-    thresholds: { vigilance: 7, unfavorable: 10 }
-    source: "Sivakumar (1988) : pas de pause sèche de 7 jours ou plus ; même étude Niger (HAL hal-00584850) : 23 % des semis échouent après une pause de plus de 9 jours"
+    thresholds: { vigilance: 40, unfavorable: 45 }
+    source: "FAO EcoCrop, culture tolérante à la chaleur"
+  - id: secheresse
+    label: Plus longue période sans pluie
+    indicator: max_dry_spell
+    window_days: 30
+    unit: "jours"
+    direction: higher_is_worse
+    blocking: true
+    thresholds: { vigilance: 15, unfavorable: 25 }
+    source: "Tolérance du mil à la sécheresse"
+  - id: pluie_cumulee
+    label: Pluie cumulée
+    indicator: rain_sum
+    window_days: 30
+    unit: "mm"
+    direction: lower_is_worse
+    blocking: false
+    thresholds: { vigilance: 50, unfavorable: null }
+    source: "Besoins en eau du mil pluvial"

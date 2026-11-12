@@ -146,17 +146,39 @@ export interface components {
              */
             level: "faible" | "moyenne" | "elevee";
         };
-        /** CriterionResult */
+        /**
+         * CriterionResult
+         * @description Un critère du profil : son verdict, sa phrase explicative et de quoi dessiner une jauge.
+         */
         CriterionResult: {
+            /**
+             * Blocking
+             * @default false
+             */
+            blocking: boolean;
+            /** Direction */
+            direction?: ("lower_is_worse" | "higher_is_worse") | null;
             /** Explanation */
             explanation: string;
             /** Id */
             id: string;
+            /** Label */
+            label?: string | null;
             /**
              * Status
              * @enum {string}
              */
             status: "ok" | "vigilance" | "defavorable" | "non_evaluable";
+            /** Unfavorable */
+            unfavorable?: number | null;
+            /** Unit */
+            unit?: string | null;
+            /** Value */
+            value?: number | null;
+            /** Vigilance */
+            vigilance?: number | null;
+            /** Window Days */
+            window_days?: number | null;
         };
         /** Crop */
         Crop: {
@@ -192,6 +214,8 @@ export interface components {
             rh_mean_pct?: number | null;
             /** Tmax C */
             tmax_c?: number | null;
+            /** Tmean C */
+            tmean_c?: number | null;
             /** Tmin C */
             tmin_c?: number | null;
         };
@@ -265,7 +289,7 @@ export interface components {
             /** Et0 Sum Mm */
             et0_sum_mm?: number | null;
             /** Frost Days */
-            frost_days: number;
+            frost_days?: number | null;
             /** Max Dry Spell Days */
             max_dry_spell_days?: number | null;
             /** Rain Max 3D Mm */

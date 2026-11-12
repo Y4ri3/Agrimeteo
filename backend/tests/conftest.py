@@ -12,20 +12,22 @@ version: 0.0.1
 status: {status}
 criteria:
   - id: pluie
-    label: Plus forte pluie sur 3 jours
-    indicator: rain_max_3d_mm
+    label: Pluie cumulée
+    indicator: rain_sum
+    window_days: 7
     unit: mm
     direction: lower_is_worse
     blocking: true
-    thresholds: {{ vigilance: 20, unfavorable: 10 }}
+    thresholds: {{ vigilance: 40, unfavorable: 10 }}
     source: test
   - id: secheresse
-    label: Plus longue période sèche
-    indicator: max_dry_spell_days
+    label: Plus longue période sans pluie
+    indicator: max_dry_spell
+    window_days: 7
     unit: jours
     direction: higher_is_worse
     blocking: true
-    thresholds: {{ vigilance: 7, unfavorable: 10 }}
+    thresholds: {{ vigilance: 6, unfavorable: 7 }}
     source: test
 """
 

@@ -16,7 +16,7 @@ class Indicators(BaseModel):
     tmean_c: float | None = None
     tmin_min_c: float | None = None
     tmax_max_c: float | None = None
-    frost_days: int
+    frost_days: int | None = None
     diurnal_range_c: float | None = None
     et0_sum_mm: float | None = None
     water_balance_mm: float | None

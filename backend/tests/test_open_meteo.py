@@ -15,6 +15,7 @@ ARCHIVE = {
         "precipitation_sum": [0.0, None, 12.4],
         "temperature_2m_min": [22.1, 22.4, 21.9],
         "temperature_2m_max": [31.0, 30.5, 29.8],
+        "temperature_2m_mean": [26.5, 26.4, 25.8],
         "relative_humidity_2m_mean": [70, 72, 80],
         "et0_fao_evapotranspiration": [5.1, 5.0, 4.2],
     }
@@ -36,7 +37,7 @@ def test_daily_maps_to_common_schema_and_keeps_missing_as_null():  # D-01, D-03
     assert [r.date for r in records] == [date(2025, 10, d) for d in (1, 2, 3)]
     assert records[1].precipitation_mm is None  # jamais remplacé par 0
     assert records[2].precipitation_mm == 12.4 and records[2].rh_mean_pct == 80 and records[2].et0_mm == 4.2
-    assert records[0].tmin_c == 22.1 and records[0].tmax_c == 31.0
+    assert records[0].tmin_c == 22.1 and records[0].tmax_c == 31.0 and records[0].tmean_c == 26.5
     assert seen["start_date"] == "2025-10-01" and "et0_fao_evapotranspiration" in seen["daily"]
 
 

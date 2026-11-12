@@ -97,7 +97,7 @@ def indicators(
     validation.check_period(start, end)
     provider = providers.resolve(source)
     _log(request, "indicators", latitude, longitude)
-    ind, report, src = indicator_service.analyse(provider, latitude, longitude, start, end, window_days)
+    ind, report, src, _ = indicator_service.analyse(provider, latitude, longitude, start, end, window_days)
     return IndicatorsResponse(
         request_id=rid(request),
         location=Location(latitude=latitude, longitude=longitude),
@@ -129,8 +129,8 @@ def predictions(request: Request, body: PredictionRequest):
     provider = providers.resolve(body.source)
     lat, lon = body.location.latitude, body.location.longitude
     _log(request, "predictions", lat, lon)
-    ind, report, src = indicator_service.analyse(provider, lat, lon, start, end, body.window_days)
-    favorability, confidence, limits = engine.evaluate_crop(crop.id, ind, report, src)
+    ind, report, src, series = indicator_service.analyse(provider, lat, lon, start, end, body.window_days)
+    favorability, confidence, limits = engine.evaluate_crop(crop.id, series, report, src)
     return PredictionResponse(
         request_id=rid(request),
         analysis_window=AnalysisWindow(start_date=start, end_date=end, days=body.window_days),

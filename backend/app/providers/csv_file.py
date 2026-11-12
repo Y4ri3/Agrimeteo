@@ -18,7 +18,7 @@ from app.core.errors import ProviderUnavailable
 from app.schemas.weather import DailyRecord, GeocodeResult, Source
 
 MAX_DISTANCE_KM = 100
-FIELDS = ["precipitation_mm", "tmin_c", "tmax_c", "rh_mean_pct", "et0_mm"]
+FIELDS = ["precipitation_mm", "tmin_c", "tmax_c", "tmean_c", "rh_mean_pct", "et0_mm"]
 
 
 def _norm(text: str) -> str:
@@ -72,7 +72,7 @@ class CsvProvider:
                     },
                 )
                 place["days"][date.fromisoformat(row["date"])] = DailyRecord(
-                    date=row["date"], **{k: _num(row[k]) for k in FIELDS}
+                    date=row["date"], **{k: _num(row.get(k) or "") for k in FIELDS}
                 )
         return places
 

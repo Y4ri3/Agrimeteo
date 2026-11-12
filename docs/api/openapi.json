@@ -69,7 +69,28 @@
         "type": "object"
       },
       "CriterionResult": {
+        "description": "Un critère du profil : son verdict, sa phrase explicative et de quoi dessiner une jauge.",
         "properties": {
+          "blocking": {
+            "default": false,
+            "title": "Blocking",
+            "type": "boolean"
+          },
+          "direction": {
+            "anyOf": [
+              {
+                "enum": [
+                  "lower_is_worse",
+                  "higher_is_worse"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Direction"
+          },
           "explanation": {
             "title": "Explanation",
             "type": "string"
@@ -77,6 +98,17 @@
           "id": {
             "title": "Id",
             "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
           },
           "status": {
             "enum": [
@@ -87,6 +119,61 @@
             ],
             "title": "Status",
             "type": "string"
+          },
+          "unfavorable": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unfavorable"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "vigilance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vigilance"
+          },
+          "window_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Days"
           }
         },
         "required": [
@@ -195,6 +282,17 @@
               }
             ],
             "title": "Tmax C"
+          },
+          "tmean_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmean C"
           },
           "tmin_c": {
             "anyOf": [
@@ -390,8 +488,15 @@
             "title": "Et0 Sum Mm"
           },
           "frost_days": {
-            "title": "Frost Days",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frost Days"
           },
           "max_dry_spell_days": {
             "anyOf": [
@@ -498,7 +603,6 @@
         },
         "required": [
           "rain_sum_mm",
-          "frost_days",
           "water_balance_mm"
         ],
         "title": "Indicators",

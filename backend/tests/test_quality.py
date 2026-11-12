@@ -9,7 +9,14 @@ D = date(2026, 10, 1)
 
 
 def rec(day, **kw):
-    base = {"precipitation_mm": 1.0, "tmax_c": 30.0, "tmin_c": 20.0, "rh_mean_pct": 60.0, "et0_mm": 4.0}
+    base = {
+        "precipitation_mm": 1.0,
+        "tmax_c": 30.0,
+        "tmin_c": 20.0,
+        "tmean_c": 25.0,
+        "rh_mean_pct": 60.0,
+        "et0_mm": 4.0,
+    }
     return DailyRecord(date=date(2026, 10, day), **{**base, **kw})
 
 

@@ -38,6 +38,7 @@ class FixtureProvider:
                     precipitation_mm=None if k % 17 == 0 else round((k * 7 % 13) / 2, 1),
                     tmax_c=30 + (k % 5),
                     tmin_c=22 + (k % 3),
+                    tmean_c=26 + (k % 3) / 2,
                     rh_mean_pct=60 + (k % 20),
                     et0_mm=4 + (k % 3) / 2,
                 )

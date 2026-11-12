@@ -246,7 +246,7 @@ def test_dry_window_is_unfavorable_and_explained(client, monkeypatch):  # P-04, 
     _weather_provider(monkeypatch, 0.0)
     level, body = _level(client, "test_valide")
     assert level == "peu_favorable"
-    assert "seuil défavorable franchi" in body["meteorological_favorability"]["summary"]
+    assert "seuil défavorable" in body["meteorological_favorability"]["summary"]
 
 
 def test_crops_come_from_profile_files(client):

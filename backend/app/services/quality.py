@@ -10,7 +10,7 @@ from datetime import date, timedelta
 
 from app.schemas.weather import DailyRecord, FlaggedValue, Quality
 
-VARIABLES = ["precipitation_mm", "tmax_c", "tmin_c", "rh_mean_pct", "et0_mm"]
+VARIABLES = ["precipitation_mm", "tmax_c", "tmin_c", "tmean_c", "rh_mean_pct", "et0_mm"]
 
 
 def check(daily: list[DailyRecord], start: date, end: date) -> tuple[list[DailyRecord], Quality]:
@@ -71,4 +71,5 @@ def _sanitize(rec: DailyRecord, flagged: list[FlaggedValue]) -> DailyRecord:
     if rec.tmin_c is not None and rec.tmax_c is not None and rec.tmin_c > rec.tmax_c:
         reject("tmin_c")
         reject("tmax_c")
+        reject("tmean_c")
     return DailyRecord(**data)

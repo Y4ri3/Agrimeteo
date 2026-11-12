@@ -16,11 +16,12 @@ DIRECTIONS = ("lower_is_worse", "higher_is_worse")  # sens dans lequel la valeur
 class Criterion:
     id: str
     label: str
-    indicator: str
+    indicator: str  # nom dans agrimeteo_ml.indicators.INDICATORS
+    window_days: int  # fenêtre (derniers jours) sur laquelle l'indicateur est calculé
     unit: str
     direction: str
     blocking: bool
-    vigilance: float | None
+    vigilance: float | None  # un seuil peut être absent ; les deux absents = « seuil non défini »
     unfavorable: float | None
     source: str | None
 
@@ -38,6 +39,8 @@ class Profile:
 
 def problems(data: dict[str, Any]) -> list[str]:
     """Liste lisible des défauts d'un profil (vide = profil valide)."""
+    from agrimeteo_ml.indicators import INDICATORS
+
     out: list[str] = []
     for key in ("id", "label", "version", "status", "criteria"):
         if not data.get(key):
@@ -48,17 +51,19 @@ def problems(data: dict[str, Any]) -> list[str]:
         cid = c.get("id", "?")
         th = c.get("thresholds") or {}
         vig, unf = th.get("vigilance"), th.get("unfavorable")
+        if c.get("indicator") not in INDICATORS:
+            out.append(f"{cid} : indicateur inconnu {c.get('indicator')!r}")
         if c.get("direction") not in DIRECTIONS:
             out.append(f"{cid} : direction invalide")
-        if (vig is None) != (unf is None):
-            out.append(f"{cid} : les deux seuils (vigilance, unfavorable) doivent être définis ensemble")
         if vig is not None and unf is not None:
-            ordered = unf < vig if c.get("direction") == "lower_is_worse" else vig < unf
+            ordered = unf <= vig if c.get("direction") == "lower_is_worse" else vig <= unf
             if not ordered:
                 out.append(f"{cid} : seuils incohérents avec la direction {c.get('direction')}")
-            if not c.get("source"):
-                out.append(f"{cid} : seuil sans source (P-06)")
-        if data.get("status") == "valide_par_source" and (vig is None or not c.get("source")):
+        if (vig is not None or unf is not None) and not c.get("source"):
+            out.append(f"{cid} : seuil sans source (P-06)")
+        if data.get("status") == "valide_par_source" and (
+            (vig is None and unf is None) or not c.get("source")
+        ):
             out.append(f"{cid} : profil 'valide_par_source' exige seuils et source")
     return out
 
@@ -80,6 +85,7 @@ def load_profile(path: str | Path) -> Profile:
                 id=c["id"],
                 label=c.get("label", c["id"]),
                 indicator=c["indicator"],
+                window_days=int(c.get("window_days") or (data.get("analysis") or {}).get("window_days", 30)),
                 unit=c.get("unit", ""),
                 direction=c["direction"],
                 blocking=bool(c.get("blocking", False)),
