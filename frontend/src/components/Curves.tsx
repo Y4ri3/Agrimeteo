@@ -78,8 +78,8 @@ export function Curves({
               <Chart title="Températures de chaque jour" unit="°C" yLabel="Température (°C)" dates={dates}
                 howToRead="La courbe du haut est la température la plus chaude de la journée, celle du bas la plus fraîche. Plus les courbes montent, plus il fait chaud."
                 series={[
-                  { name: "Température maximale (journée)", kind: "line", values: d.daily.map((r) => r.tmax_c ?? null) },
                   { name: "Température minimale (nuit)", kind: "line", values: d.daily.map((r) => r.tmin_c ?? null) },
+                  { name: "Température maximale (journée)", kind: "line", values: d.daily.map((r) => r.tmax_c ?? null) },
                 ]} />
               <Chart title="Eau que l'air pourrait évaporer" unit="mm" yLabel="Évaporation possible (mm par jour)" dates={dates}
                 howToRead="C'est l'évapotranspiration de référence (ET0) : la quantité d'eau que le soleil et le vent peuvent évaporer en un jour. Quand elle dépasse la pluie, les sols se dessèchent."

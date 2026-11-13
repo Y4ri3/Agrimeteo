@@ -7,7 +7,7 @@ export function CriterionCard({ c }: { c: Criterion }) {
   return (
     <li className={`crit st-${c.status}`} data-testid={`critere-${c.id}`}>
       <div className="crit-head">
-        <h4>{c.label ?? c.id}{c.window_days ? <small> sur {c.window_days} jours</small> : null}</h4>
+        <h3>{c.label ?? c.id}{c.window_days ? <small> sur {c.window_days} jours</small> : null}</h3>
         <span className={`tag s-${c.status}`}><span aria-hidden="true">{s.icon}</span> {s.word}</span>
       </div>
       <Gauge c={c} />
